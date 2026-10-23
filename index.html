@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function() {
+        try {
+          var realFetch = window.fetch;
+          var customFetch = realFetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() {
+              return customFetch || realFetch;
+            },
+            set: function(fn) {
+              customFetch = fn;
+            },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {}
+
+        // Safely suppress third-party extension injection crashes
+        window.addEventListener('error', function(e) {
+          if (
+            (e.filename && e.filename.indexOf('chrome-extension://') !== -1) ||
+            (e.message && e.message.indexOf('Cannot set property fetch') !== -1)
+          ) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+        }, true);
+      })();
+    </script>
+    <title>Аватар-лаборатория RENDERIA</title>
+    <meta name="description" content="Интерактивная образовательная мастерская создания персонажей Roblox и работы с нейросетями для детей от 8 лет" />
+    <meta property="og:title" content="Аватар-лаборатория RENDERIA" />
+    <meta property="og:description" content="Интерактивная образовательная мастерская создания персонажей Roblox и работы с нейросетями для детей от 8 лет" />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#B9F24D" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

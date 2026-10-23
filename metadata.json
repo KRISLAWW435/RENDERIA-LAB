@@ -1,0 +1,6 @@
+{
+  "name": "Аватар-лаборатория RENDERIA",
+  "description": "Интерактивная образовательная мастерская создания персонажей Roblox и работы с нейросетями для детей от 8 лет",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

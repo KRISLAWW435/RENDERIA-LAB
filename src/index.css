@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-lime: #B9F24D;
+    --color-pink: #FFB9D5;
+    --color-sky: #62C9F5;
+    --color-graphite: #252735;
+    --color-lavender: #BDA7FF;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #F8FAFD;
+    color: #252735;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+}
+
+.font-display {
+  font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Duolingo style 3D pushable button effects */
+.btn-3d-lime {
+  background-color: #B9F24D;
+  color: #252735;
+  box-shadow: 0 4px 0 #92C634;
+  transition: all 0.12s ease;
+}
+.btn-3d-lime:hover {
+  background-color: #C5F762;
+  box-shadow: 0 5px 0 #92C634;
+  transform: translateY(-1px);
+}
+.btn-3d-lime:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #92C634;
+}
+
+.btn-3d-sky {
+  background-color: #62C9F5;
+  color: #252735;
+  box-shadow: 0 4px 0 #3BA5D3;
+  transition: all 0.12s ease;
+}
+.btn-3d-sky:hover {
+  background-color: #79D4FA;
+  box-shadow: 0 5px 0 #3BA5D3;
+  transform: translateY(-1px);
+}
+.btn-3d-sky:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #3BA5D3;
+}
+
+.btn-3d-pink {
+  background-color: #FFB9D5;
+  color: #252735;
+  box-shadow: 0 4px 0 #D988A8;
+  transition: all 0.12s ease;
+}
+.btn-3d-pink:hover {
+  background-color: #FFC6DC;
+  box-shadow: 0 5px 0 #D988A8;
+  transform: translateY(-1px);
+}
+.btn-3d-pink:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #D988A8;
+}
+
+.btn-3d-lavender {
+  background-color: #BDA7FF;
+  color: #252735;
+  box-shadow: 0 4px 0 #957EE0;
+  transition: all 0.12s ease;
+}
+.btn-3d-lavender:hover {
+  background-color: #C9B7FF;
+  box-shadow: 0 5px 0 #957EE0;
+  transform: translateY(-1px);
+}
+.btn-3d-lavender:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #957EE0;
+}
+
+.btn-3d-white {
+  background-color: #FFFFFF;
+  color: #252735;
+  box-shadow: 0 4px 0 #D7DDE6;
+  transition: all 0.12s ease;
+}
+.btn-3d-white:hover {
+  box-shadow: 0 5px 0 #C4CCD7;
+  transform: translateY(-1px);
+}
+.btn-3d-white:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #C4CCD7;
+}
+
+/* Gentle floating animation */
+@keyframes gentle-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-gentle-bounce {
+  animation: gentle-bounce 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.65) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(45deg);
+  }
+}
+
+.animate-sparkle {
+  animation: sparkle-twinkle 2.8s ease-in-out infinite;
+}
