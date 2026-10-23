@@ -37,11 +37,13 @@ export interface AppearanceState {
     id: string;
     name: string;
     description: string;
+    image?: string;
   };
   accessory: {
     id: string;
     name: string;
     description: string;
+    image?: string;
   };
   expression: {
     id: string;
@@ -53,6 +55,7 @@ export interface AppearanceState {
     id: string;
     name: string;
     description: string;
+    image?: string;
   };
 }
 

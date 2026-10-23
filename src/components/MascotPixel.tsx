@@ -9,6 +9,7 @@ interface MascotPixelProps {
   speechText: string;
   tip?: string;
   className?: string;
+  showHint?: boolean;
 }
 
 interface Particle {
@@ -40,6 +41,7 @@ export const MascotPixel: React.FC<MascotPixelProps> = ({
   speechText,
   tip,
   className = '',
+  showHint = true,
 }) => {
   const [customSpeech, setCustomSpeech] = useState<string | null>(null);
   const [lastPhraseIndex, setLastPhraseIndex] = useState<number>(-1);
@@ -187,34 +189,36 @@ export const MascotPixel: React.FC<MascotPixelProps> = ({
         </div>
 
         {/* Mascot Hint with upward curved arrow directly below the chat bubble */}
-        <div className="flex items-center gap-2 px-1 select-none pointer-events-none animate-pix-bob">
-          {/* Playful curved arrow swooping up and left towards Pix */}
-          <svg
-            className="w-7 h-7 sm:w-8 sm:h-8 text-[#166534] shrink-0 drop-shadow-xs"
-            viewBox="0 0 36 32"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M 32 26 C 20 26, 10 18, 6 8"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M 1 16 L 6 7 L 14 11"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+        {showHint && (
+          <div className="flex items-center gap-2 px-1 select-none pointer-events-none animate-pix-bob">
+            {/* Playful curved arrow swooping up and left towards Pix */}
+            <svg
+              className="w-7 h-7 sm:w-8 sm:h-8 text-[#166534] shrink-0 drop-shadow-xs"
+              viewBox="0 0 36 32"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M 32 26 C 20 26, 10 18, 6 8"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 1 16 L 6 7 L 14 11"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
 
-          {/* Dark green text, formatted naturally (not as a button), aligned below chat bubble */}
-          <span className="font-display font-black text-xs sm:text-sm text-[#166534] tracking-wide leading-tight drop-shadow-xs">
-            Нажми на Пикса, чтобы услышать совет!
-          </span>
-        </div>
+            {/* Dark green text, formatted naturally (not as a button), aligned below chat bubble */}
+            <span className="font-display font-black text-xs sm:text-sm text-[#166534] tracking-wide leading-tight drop-shadow-xs">
+              Нажми на Пикса, чтобы услышать совет!
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

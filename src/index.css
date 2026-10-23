@@ -178,3 +178,49 @@
 .animate-pix-particle {
   animation: pix-particle 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+/* Dress-up Game Animations */
+@keyframes dressup-pop {
+  0% {
+    transform: scale(0.92);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-dressup-pop {
+  animation: dressup-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes hero-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-hero-float {
+  animation: hero-float 3.2s ease-in-out infinite;
+}
+
+@keyframes exhaust-pulse {
+  0%, 100% {
+    transform: scaleY(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scaleY(1.25);
+    opacity: 1;
+  }
+}
+
+.animate-exhaust {
+  animation: exhaust-pulse 0.4s ease-in-out infinite alternate;
+  transform-origin: top center;
+}

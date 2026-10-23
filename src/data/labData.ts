@@ -12,6 +12,24 @@ export const ASSETS = {
   roleCyberNinja: '/src/assets/images/role_cyber_ninja_1792773216031.jpg',
   roleNatureGuardian: '/src/assets/images/role_nature_guardian_1792773231863.jpg',
   roleFantasyTraveler: '/src/assets/images/role_fantasy_traveler_1792773247734.jpg',
+  suitTechSpacesuit: '/src/assets/images/suit_tech_spacesuit_1792783141357.jpg',
+  suitCyberArmor: '/src/assets/images/suit_cyber_armor_1792783142647.jpg',
+  suitHoodieTech: '/src/assets/images/suit_hoodie_tech_1792783143309.jpg',
+  suitMagicTunic: '/src/assets/images/suit_magic_tunic_1792783143427.jpg',
+  suitCyberDress: '/src/assets/images/suit_cyber_dress_1792783730282.jpg',
+  suitPilotSuit: '/src/assets/images/suit_pilot_suit_1792783689073.jpg',
+  accHoloVisor: '/src/assets/images/acc_holo_visor_1792783143024.jpg',
+  accTwinJetpack: '/src/assets/images/acc_twin_jetpack_1792783145083.jpg',
+  accDroneSphere: '/src/assets/images/acc_drone_sphere_1792783145273.jpg',
+  accEnergyBlades: '/src/assets/images/acc_energy_blades_1792783146549.jpg',
+  accCyberWings: '/src/assets/images/acc_cyber_wings_1792783688879.jpg',
+  accMagicStaff: '/src/assets/images/acc_magic_staff_1792783689708.jpg',
+  gearGlowSneakers: '/src/assets/images/gear_glow_sneakers_1792783146398.jpg',
+  gearStarBadge: '/src/assets/images/gear_star_badge_1792783146561.jpg',
+  gearHoloMap: '/src/assets/images/gear_holo_map_1792783147508.jpg',
+  gearPlasmaCape: '/src/assets/images/gear_plasma_cape_1792783147414.jpg',
+  gearCyberCrown: '/src/assets/images/gear_cyber_crown_1792783691084.jpg',
+  gearMagicPet: '/src/assets/images/gear_magic_pet_1792783690749.jpg',
 };
 
 // External AI Image Generator Services (Single configuration point)
@@ -170,77 +188,123 @@ export const ROLES: RoleOption[] = [
 export const COLOR_PALETTES = [
   {
     id: 'lime_space',
-    name: 'Салатовый & Неон',
+    name: 'Салатовый и неон',
     primary: '#B9F24D',
     secondary: '#FFFFFF',
     accent: '#62C9F5',
   },
   {
     id: 'cyber_night',
-    name: 'Графит & Фиолет',
+    name: 'Ночной космос',
     primary: '#252735',
     secondary: '#BDA7FF',
     accent: '#FFB9D5',
   },
   {
     id: 'sky_aurora',
-    name: 'Небесный & Мята',
+    name: 'Мятное небо',
     primary: '#62C9F5',
     secondary: '#E0F7FA',
     accent: '#B9F24D',
   },
   {
     id: 'sunset_glow',
-    name: 'Розовый & Золото',
+    name: 'Розовый закат',
     primary: '#FFB9D5',
     secondary: '#FFF4E0',
     accent: '#BDA7FF',
+  },
+  {
+    id: 'cotton_candy',
+    name: 'Сахарная вата',
+    primary: '#FF94C2',
+    secondary: '#70E1FF',
+    accent: '#FFD166',
+  },
+  {
+    id: 'golden_phoenix',
+    name: 'Золотой феникс',
+    primary: '#E11D48',
+    secondary: '#FBBF24',
+    accent: '#FB923C',
   },
 ];
 
 export const OUTFITS = [
   {
     id: 'tech_suit',
-    name: 'Герметичный скафандр',
-    description: 'Модульный высокотехнологичный костюм с неоновыми светящимися швами',
+    name: 'Космический скафандр',
+    description: 'Модульный белый скафандр со светящимися линиями',
+    image: ASSETS.suitTechSpacesuit,
   },
   {
     id: 'cyber_armor',
-    name: 'Легкая композитная броня',
-    description: 'Гибкие пластины с аэродинамическими щитками на плечах',
+    name: 'Броня ниндзя',
+    description: 'Гибкая высокотехнологичная броня с неоновыми щитками',
+    image: ASSETS.suitCyberArmor,
   },
   {
     id: 'hoodie_explorer',
-    name: 'Стильное оверсайз-худи',
-    description: 'Уютное худи с голографическим принтом и спортивными карго-штанами',
+    name: 'Неоновое худи',
+    description: 'Яркое оверсайз-худи с капюшоном и спортивными штанами',
+    image: ASSETS.suitHoodieTech,
   },
   {
     id: 'magic_tunic',
-    name: 'Защитная мантия странника',
-    description: 'Мантия с парящими геометрическими узорами и прочным поясом',
+    name: 'Мантия мага',
+    description: 'Парящая волшебная мантия с сияющими рунами',
+    image: ASSETS.suitMagicTunic,
+  },
+  {
+    id: 'cyber_dress',
+    name: 'Кибер-платье',
+    description: 'Футуристическое светящееся платье с геометрическими узорами',
+    image: ASSETS.suitCyberDress,
+  },
+  {
+    id: 'pilot_suit',
+    name: 'Костюм пилота',
+    description: 'Стильный летный комбинезон звездного пилота с ремнями',
+    image: ASSETS.suitPilotSuit,
   },
 ];
 
 export const ACCESSORIES = [
   {
     id: 'visor_helmet',
-    name: 'Голографический визор',
-    description: 'Светящийся экран с интерфейсом данных и эмоциями',
+    name: 'Голо-визор',
+    description: 'Светящийся экран с интерфейсом и эмоциями',
+    image: ASSETS.accHoloVisor,
   },
   {
     id: 'jetpack',
-    name: 'Двухтурбинный джетпак',
-    description: 'Компактный реактивный ранец со световым следом',
+    name: 'Реактивный джетпак',
+    description: 'Компактный ранец со световым реактивным следом',
+    image: ASSETS.accTwinJetpack,
   },
   {
     id: 'crystal_orb',
-    name: 'Парящий спутник-сфера',
-    description: 'Миниатюрный летающий дрон-помощник',
+    name: 'Робот-сфера',
+    description: 'Летающий круглый дрон-спутник с сенсорами',
+    image: ASSETS.accDroneSphere,
   },
   {
     id: 'energy_blades',
-    name: 'Энергетические наручи',
-    description: 'Браслеты с выдвижными световыми щитками',
+    name: 'Световые клинки',
+    description: 'Энергетические браслеты с выдвижными лезвиями',
+    image: ASSETS.accEnergyBlades,
+  },
+  {
+    id: 'cyber_wings',
+    name: 'Крылья феи',
+    description: 'Голографические полупрозрачные крылья за спиной',
+    image: ASSETS.accCyberWings,
+  },
+  {
+    id: 'magic_staff',
+    name: 'Магический посох',
+    description: 'Кристаллический посох с парящим энергетическим ядром',
+    image: ASSETS.accMagicStaff,
   },
 ];
 
@@ -253,44 +317,72 @@ export const EXPRESSIONS = [
   },
   {
     id: 'focused_determined',
-    name: 'Сосредоточенный взгляд',
+    name: 'Умный взгляд',
     emoji: '🧐',
     description: 'Внимательно анализирует каждую деталь',
   },
   {
     id: 'playful_wink',
-    name: 'Задорный подмигивание',
+    name: 'Подмигивание',
     emoji: '😉',
     description: 'Веселый и дружелюбный характер',
   },
   {
     id: 'excited_wonder',
-    name: 'Эмоция восторга',
+    name: 'Восторг',
     emoji: '🤩',
     description: 'Глаза сияют при виде новых открытий',
+  },
+  {
+    id: 'cute_happy',
+    name: 'Милая улыбка',
+    emoji: '🥰',
+    description: 'Теплый, открытый и дружелюбный взгляд',
+  },
+  {
+    id: 'cool_hero',
+    name: 'Крутой герой',
+    emoji: '🦸',
+    description: 'Решительный вид настоящего супергероя',
   },
 ];
 
 export const SPECIAL_GEAR = [
   {
     id: 'glowing_boots',
-    name: 'Светодиодные кроссовки',
+    name: 'Светящиеся кроссовки',
     description: 'Подошвы светятся и оставляют яркие световые искры при беге',
+    image: ASSETS.gearGlowSneakers,
   },
   {
     id: 'badge_star',
-    name: 'Орден Звездного Мастера',
+    name: 'Золотой орден',
     description: 'Золотая эмблема на груди в форме пульсирующей звезды',
+    image: ASSETS.gearStarBadge,
   },
   {
     id: 'holo_map',
-    name: 'Голографическая карта на руке',
+    name: 'Голо-карта',
     description: 'Проекция 3D-планеты прямо над запястьем',
+    image: ASSETS.gearHoloMap,
   },
   {
     id: 'plasma_cape',
-    name: 'Короткий неоновый плащ',
+    name: 'Неоновый плащ',
     description: 'Развевается при движении, переливаясь мягким светом',
+    image: ASSETS.gearPlasmaCape,
+  },
+  {
+    id: 'cyber_crown',
+    name: 'Сияющая корона',
+    description: 'Парящая кристальная диадема с мягким неоновым блеском',
+    image: ASSETS.gearCyberCrown,
+  },
+  {
+    id: 'magic_pet',
+    name: 'Волшебный питомец',
+    description: 'Маленький сияющий кибер-зверек на плече героя',
+    image: ASSETS.gearMagicPet,
   },
 ];
 
