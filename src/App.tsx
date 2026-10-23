@@ -16,6 +16,7 @@ import { Stage4PromptAssembly } from './components/stages/Stage4PromptAssembly';
 import { Stage5GenerateImage } from './components/stages/Stage5GenerateImage';
 import { Stage6Prepare3D } from './components/stages/Stage6Prepare3D';
 import { FinalAchievement } from './components/FinalAchievement';
+import { startBackgroundMusic } from './services/soundEffects';
 
 const INITIAL_CHARACTER: CharacterData = {
   name: 'Астро-Пилот',
@@ -135,6 +136,7 @@ export default function App() {
 
   // Stage transitions with badge awards
   const goToStage1 = () => {
+    startBackgroundMusic();
     setCurrentStage('stage1_concept');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

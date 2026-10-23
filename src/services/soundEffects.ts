@@ -1,10 +1,78 @@
+import bgMusicUrl from '../assets/audio/Modern Future-Pop Kids Studio.mp3';
+
 /**
- * Offline Procedural Web Audio Synthesizer
- * Zero external audio files required — runs 100% offline anywhere.
+ * Procedural Web Audio Synthesizer & Background Music Controller
  */
 
 let audioCtx: AudioContext | null = null;
 let isMuted = false;
+let bgAudio: HTMLAudioElement | null = null;
+
+type SoundStateListener = (muted: boolean, isMusicPlaying: boolean) => void;
+const listeners = new Set<SoundStateListener>();
+
+export function subscribeSoundState(listener: SoundStateListener): () => void {
+  listeners.add(listener);
+  listener(getMuted(), isMusicPlaying());
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function notifySoundState() {
+  const muted = getMuted();
+  const playing = isMusicPlaying();
+  listeners.forEach((fn) => {
+    try {
+      fn(muted, playing);
+    } catch {
+      // Ignore listener error
+    }
+  });
+}
+
+export function isMusicPlaying(): boolean {
+  return !!bgAudio && !bgAudio.paused && !bgAudio.muted;
+}
+
+export function getBackgroundAudio(): HTMLAudioElement | null {
+  if (typeof window === 'undefined') return null;
+  if (!bgAudio) {
+    bgAudio = new Audio(bgMusicUrl);
+    bgAudio.loop = true;
+    bgAudio.volume = 0.25;
+    bgAudio.preload = 'auto';
+
+    bgAudio.addEventListener('play', () => {
+      notifySoundState();
+    });
+    bgAudio.addEventListener('pause', () => {
+      notifySoundState();
+    });
+    bgAudio.addEventListener('volumechange', () => {
+      notifySoundState();
+    });
+  }
+  return bgAudio;
+}
+
+export function startBackgroundMusic(): void {
+  if (getMuted()) return;
+  const audio = getBackgroundAudio();
+  if (!audio) return;
+  if (audio.paused) {
+    audio.play().catch((err) => {
+      console.warn('Background music autoplay blocked or failed:', err);
+    });
+  }
+}
+
+export function toggleMusic(): boolean {
+  const currentMuted = getMuted();
+  const nextMuted = !currentMuted;
+  setMuted(nextMuted);
+  return !nextMuted;
+}
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -25,6 +93,17 @@ export function setMuted(muted: boolean) {
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem('renderia_sound_muted', muted ? 'true' : 'false');
   }
+  const audio = getBackgroundAudio();
+  if (audio) {
+    if (muted) {
+      audio.pause();
+    } else {
+      audio.play().catch((err) => {
+        console.warn('Playback error on unmute:', err);
+      });
+    }
+  }
+  notifySoundState();
 }
 
 export function getMuted(): boolean {

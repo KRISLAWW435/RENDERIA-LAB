@@ -1,8 +1,8 @@
 import React from 'react';
-import { ASSETS } from '../data/labData';
+import labbagImg from '../assets/images/labbag.webp';
 import { MascotPixel } from './MascotPixel';
 import { AdventureMap } from './AdventureMap';
-import { playSuccessSound } from '../services/soundEffects';
+import { playSuccessSound, startBackgroundMusic } from '../services/soundEffects';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
 interface IntroScreenProps {
@@ -12,38 +12,49 @@ interface IntroScreenProps {
 export const IntroScreen: React.FC<IntroScreenProps> = ({ onStart }) => {
   const handleStart = () => {
     playSuccessSound();
+    startBackgroundMusic();
     onStart();
   };
 
   return (
-    <div className="relative overflow-hidden py-6 sm:py-8 px-4 sm:px-6">
-      <div className="max-w-5xl mx-auto space-y-8 sm:space-y-10">
-        {/* Hero Visual Scene with Panoramic Laboratory Background */}
-        <div className="relative rounded-3xl overflow-hidden border-3 border-[#252735] shadow-[0_8px_0_#252735] bg-gradient-to-b from-[#62C9F5]/30 to-[#B9F24D]/20">
-          <div className="aspect-16/9 sm:aspect-21/9 w-full relative">
-            <img
-              src={ASSETS.labBg}
-              alt="Творческая лаборатория RENDERIA"
-              className="w-full h-full object-cover select-none"
-              referrerPolicy="no-referrer"
-            />
-            {/* Subtle soft gradient scrim for text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#252735]/85 via-[#252735]/40 to-transparent flex flex-col justify-end p-6 sm:p-10 text-white" />
-
-            <div className="absolute bottom-6 left-6 right-6 sm:bottom-10 sm:left-10 sm:right-10 text-white flex flex-col items-start gap-2 max-w-2xl">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B9F24D] text-[#252735] font-black text-xs uppercase tracking-wider shadow-sm">
-                <Sparkles className="w-3.5 h-3.5 text-[#252735]" />
-                Интерактивная мастерская
-              </span>
-              <h1 className="text-3xl sm:text-5xl font-black font-display tracking-tight leading-tight drop-shadow-md text-white">
-                Создай героя, которого ещё никто не видел!
-              </h1>
-              <p className="text-sm sm:text-lg font-medium text-slate-100 max-w-xl drop-shadow-sm">
-                Придумай образ, научись объяснять свои идеи нейросети и подготовь персонажа к жизни в 3D.
-              </p>
-            </div>
-          </div>
+    <div className="w-full flex flex-col">
+      {/* 1. Full-Width Clean 3D Laboratory Artwork (No Overlays, No Text, No Fades) */}
+      <section className="relative w-full overflow-hidden bg-[#252735]">
+        <div className="w-full aspect-16/9 sm:aspect-21/9 max-h-[580px] min-h-[300px] sm:min-h-[420px] relative">
+          <img
+            src={labbagImg}
+            alt="3D Аватар-лаборатория RENDERIA"
+            className="w-full h-full object-cover object-center select-none"
+            referrerPolicy="no-referrer"
+          />
         </div>
+      </section>
+
+      {/* 2. Engaging Hero Text Block (Game Logo Typography & Accents) */}
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-3 sm:pt-10 sm:pb-4 text-center flex flex-col items-center gap-4">
+        {/* Green Badge */}
+        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#B9F24D] text-[#252735] font-black text-xs uppercase tracking-wider border-2 border-[#252735] shadow-[0_2px_0_#252735]">
+          <Sparkles className="w-4 h-4 text-[#252735]" />
+          <span>ИНТЕРАКТИВНАЯ МАСТЕРСКАЯ</span>
+        </span>
+
+        {/* Game-Logo Heading with vibrant lime accent on "героя" */}
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight text-[#252735] leading-[1.18] max-w-3xl">
+          Создай{' '}
+          <span className="relative inline-block text-[#252735] px-3 py-0.5 rounded-2xl bg-[#B9F24D] border-3 border-[#252735] shadow-[0_4px_0_#252735] -rotate-1 mx-1 hover:rotate-1 transition-transform select-none">
+            героя
+          </span>
+          , которого ещё никто не видел!
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-600 max-w-2xl leading-relaxed">
+          Придумай образ, научись объяснять свои идеи нейросети и подготовь персонажа к жизни в 3D.
+        </p>
+      </div>
+
+      {/* 3. Main Content Body: Mascot -> Adventure Map -> Start Button */}
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 space-y-8 sm:space-y-10 pb-8 sm:pb-12 pt-2 sm:pt-4">
 
         {/* Mascot Greeting Dialogue (Clean transparent PNG, NO enclosing white box, NO upload button) */}
         <div className="py-2">

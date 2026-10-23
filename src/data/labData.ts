@@ -2,7 +2,7 @@ import { RoleOption, AppearanceState, RoleId, VisualStyleId } from '../types/ava
 
 // Real generated assets from project
 export const ASSETS = {
-  labBg: '/src/assets/images/lab_background_1792768748134.jpg',
+  labBg: '/src/assets/images/labbag.webp',
   pixelHappy: '/src/assets/pix/pixel1.webp',
   pixelThinking: '/src/assets/pix/pixel1.webp',
   pixelCelebrate: '/src/assets/pix/pixel1.webp',

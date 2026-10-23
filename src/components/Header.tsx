@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Volume2, VolumeX, Sparkles, HelpCircle, RotateCcw, Download } from 'lucide-react';
-import { getMuted, setMuted, playClickSound } from '../services/soundEffects';
+import { getMuted, toggleMusic, subscribeSoundState, playClickSound, isMusicPlaying } from '../services/soundEffects';
 import { StageId } from '../types/avatar';
 
 interface HeaderProps {
@@ -16,15 +16,20 @@ export const Header: React.FC<HeaderProps> = ({
   onReset,
   onGoHome,
 }) => {
-  const [muted, setMutedState] = useState(getMuted());
+  const [isPlaying, setIsPlaying] = useState<boolean>(isMusicPlaying());
+  const [isMuted, setIsMuted] = useState<boolean>(getMuted());
 
-  const toggleSound = () => {
-    const next = !muted;
-    setMutedState(next);
-    setMuted(next);
-    if (!next) {
-      playClickSound();
-    }
+  useEffect(() => {
+    const unsubscribe = subscribeSoundState((muted, playing) => {
+      setIsMuted(muted);
+      setIsPlaying(playing);
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleToggleSound = () => {
+    playClickSound();
+    toggleMusic();
   };
 
   const handleLogoClick = () => {
@@ -95,14 +100,22 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[11px] font-bold text-slate-300">XP</span>
           </div>
 
-          {/* Sound Toggle */}
+          {/* Background Music & Sound Toggle */}
           <button
-            onClick={toggleSound}
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors border border-slate-200 cursor-pointer"
-            title={muted ? 'Включить звук' : 'Выключить звук'}
-            aria-label="Переключить звук"
+            onClick={handleToggleSound}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all border cursor-pointer ${
+              isPlaying
+                ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border-emerald-300 shadow-xs'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-500 border-slate-200'
+            }`}
+            title={isPlaying ? 'Выключить музыку (Пауза)' : 'Включить музыку'}
+            aria-label={isPlaying ? 'Выключить музыку' : 'Включить музыку'}
           >
-            {muted ? <VolumeX className="w-4 h-4 text-slate-400" /> : <Volume2 className="w-4 h-4 text-emerald-600" />}
+            {isPlaying ? (
+              <Volume2 className="w-4 h-4 text-emerald-600 animate-pulse" />
+            ) : (
+              <VolumeX className="w-4 h-4 text-slate-400" />
+            )}
           </button>
 
           {/* Reset progress button */}
