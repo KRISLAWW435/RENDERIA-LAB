@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CharacterData } from '../../types/avatar';
 import { MascotPixel } from '../MascotPixel';
+import pixelMascotImg from '../../assets/pix/pixel1.webp';
 import { playClickSound, playSelectSound, playSuccessSound, playBadgeSound } from '../../services/soundEffects';
 import { ArrowRight, ArrowLeft, Check, Sparkles, AlertCircle, HelpCircle } from 'lucide-react';
 
@@ -149,12 +150,18 @@ export const Stage3PromptTraining: React.FC<Stage3PromptTrainingProps> = ({
                 : 'bg-amber-50 border-amber-300'
             }`}
           >
-            <div className="text-3xl shrink-0">🤖</div>
+            <div className="w-12 h-12 shrink-0 select-none">
+              <img
+                src={pixelMascotImg}
+                alt="Пикс"
+                className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(37,39,53,0.15)]"
+              />
+            </div>
             <div className="space-y-1">
               <h4 className="font-bold text-sm text-[#252735]">
                 {selectedOption === 'detailed'
-                  ? 'Пиксель: «Ты абсолютно прав! Во втором описании нейросеть получает конкретные координаты!»'
-                  : 'Пиксель: «Попробуй вариант Б! В первом варианте нейросеть будет наугад придумывать каждую деталь.»'}
+                  ? 'Пикс: «Ты абсолютно прав! Во втором описании нейросеть получает конкретные координаты!»'
+                  : 'Пикс: «Попробуй вариант Б! В первом варианте нейросеть будет наугад придумывать каждую деталь.»'}
               </h4>
               <p className="text-xs text-slate-700 leading-relaxed">
                 Формула сильного промпта: <strong>[Кто?]</strong> + <strong>[В чём одет и какие цвета?]</strong> + <strong>[Какие аксессуары?]</strong> + <strong>[Стиль и чистый фон]</strong>.

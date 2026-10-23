@@ -284,20 +284,20 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
           {/* Bottom Mascot Layout: Frameless Mascot (src/assets/pix/pixel1.webp) below grid with hint speech bubble */}
           <div className="pt-2 flex items-end gap-3 sm:gap-4 select-none">
             {/* Mascot Character Image using pixel1.webp */}
-            <div className="relative w-24 h-28 sm:w-28 sm:h-32 shrink-0 transition-transform duration-300 hover:scale-105 group cursor-pointer" title="Пиксель рад помочь!">
+            <div className="relative w-32 h-36 sm:w-40 sm:h-44 shrink-0 transition-transform duration-300 hover:scale-105 group cursor-pointer" title="Пикс рад помочь!">
               {/* Soft glowing aura */}
               <div className="absolute inset-0 -m-1.5 rounded-full bg-gradient-to-tr from-[#B9F24D]/35 to-[#62C9F5]/35 blur-xl pointer-events-none opacity-80" />
               <img
                 src={pixelMascotImg}
-                alt="Пиксель"
-                className="w-full h-full object-contain filter drop-shadow-[0_10px_20px_rgba(37,39,53,0.22)]"
+                alt="Пикс"
+                className="w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(37,39,53,0.22)]"
               />
             </div>
 
             {/* Speech bubble pointing up towards UI */}
-            <div className="relative bg-white border-2 border-[#252735] rounded-2xl rounded-bl-xs p-3 shadow-[0_4px_0_#252735] max-w-sm mb-2">
+            <div className="relative bg-white border-2 border-[#252735] rounded-2xl rounded-bl-xs p-3 shadow-[0_4px_0_#252735] max-w-sm mb-3">
               <div className="text-[10px] font-black uppercase tracking-wider text-[#62C9F5] flex items-center gap-1 mb-0.5">
-                <span>Пиксель</span>
+                <span>Пикс</span>
                 <span className="text-slate-400">•</span>
                 <span className="text-slate-500">Помощник в дизайне</span>
               </div>
@@ -424,17 +424,17 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
               </div>
             </div>
 
-            {/* Live Reaction Card (Using pixel1.webp for the tiny mascot avatar) */}
+            {/* Live Reaction Card (Using pixel1.webp for the mascot avatar) */}
             <div className="bg-[#B9F24D]/20 border-2 border-[#B9F24D] rounded-2xl p-3 sm:p-3.5 flex items-center gap-3.5 shadow-2xs">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center select-none">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center select-none">
                 <img
                   src={pixelMascotImg}
-                  alt="Пиксель"
+                  alt="Пикс"
                   className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(37,39,53,0.18)]"
                 />
               </div>
               <p className="text-xs sm:text-sm font-bold text-[#252735] leading-snug">
-                Пиксель: «Герой <span className="text-[#252735] underline decoration-[#62C9F5] decoration-2">{heroName || 'Герой'}</span> готов! Впереди выбор костюма и экипировки!»
+                Пикс: «Герой <span className="text-[#252735] underline decoration-[#62C9F5] decoration-2">{heroName || 'Герой'}</span> готов! Впереди выбор костюма и экипировки!»
               </p>
             </div>
 

@@ -49,7 +49,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({ onStart }) => {
         <div className="py-2">
           <MascotPixel
             mood="happy"
-            speechText="Привет, создатель! Я Пиксель — твой помощник в мире дизайна. Сегодня мы придумаем твоего героя и подготовим его к 3D!"
+            speechText="Привет, создатель! Я Пикс — твой помощник в мире дизайна. Сегодня мы придумаем твоего героя и подготовим его к 3D!"
           />
         </div>
 

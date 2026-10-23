@@ -192,7 +192,7 @@ export const Stage5GenerateImage: React.FC<Stage5GenerateImageProps> = ({
             <div className="flex-1 space-y-4">
               <div className="space-y-2">
                 <h3 className="font-display font-black text-lg text-[#252735]">
-                  Анализ результата с Пикселем
+                  Анализ результата с Пиксом
                 </h3>
                 <p className="text-xs text-slate-600">
                   Похож ли полученный герой на то, что ты задумал в начале пути?
