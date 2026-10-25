@@ -46,8 +46,8 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
 Цветовая палитра: ${character.appearance.colorPalette.name}
 Костюм: ${character.appearance.outfit.name} (${character.appearance.outfit.description})
 Аксессуар: ${character.appearance.accessory.name} (${character.appearance.accessory.description})
-Выражение лица: ${character.appearance.expression.name}
-Особая деталь: ${character.appearance.specialGear.name}
+Характер: ${character.appearance.expression.name}
+Поза: ${character.appearance.pose?.name || 'Стоит ровно (T-поза)'}
 Стиль: Stylized 3D Figurine
 
 -----------------------------------------------------
@@ -181,10 +181,10 @@ ${character.customPromptEn || 'Not specified'}
 
               <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
                 <span className="text-xs font-bold text-slate-500 block mb-0.5">
-                  Деталь:
+                  Поза:
                 </span>
                 <span className="text-xs font-bold text-[#252735]">
-                  {character.appearance.specialGear.name}
+                  {character.appearance.pose?.name || 'Стоит ровно (T-поза)'}
                 </span>
               </div>
             </div>

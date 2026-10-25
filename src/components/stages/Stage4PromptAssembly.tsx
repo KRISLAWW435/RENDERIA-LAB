@@ -158,7 +158,7 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
               >
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="font-black text-sm text-[#252735]">
+                    <span className="font-black text-sm text-[#252735] first-letter:uppercase">
                       {st.name}
                     </span>
                     {isSelected && (

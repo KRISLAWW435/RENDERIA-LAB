@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { StageId, CharacterData, BadgeItem } from './types/avatar';
-import { COLOR_PALETTES, OUTFITS, ACCESSORIES, EXPRESSIONS, SPECIAL_GEAR, ROLES } from './data/labData';
+import { COLOR_PALETTES, OUTFITS, ACCESSORIES, EXPRESSIONS, POSES, SPECIAL_GEAR, ROLES } from './data/labData';
 import { Header } from './components/Header';
 import { StageRoadmap } from './components/StageRoadmap';
 import { IntroScreen } from './components/IntroScreen';
@@ -23,12 +23,14 @@ const INITIAL_CHARACTER: CharacterData = {
   role: 'cosmic_explorer',
   power: 'Управляет гравитацией и открывает порталы',
   style: 'roblox_3d',
+  hasLearnedStyle: false,
   appearance: {
     colorPalette: COLOR_PALETTES[0],
     outfit: OUTFITS[0],
     accessory: ACCESSORIES[0],
     expression: EXPRESSIONS[0],
-    specialGear: SPECIAL_GEAR[0],
+    pose: POSES[0],
+    specialGear: POSES[0],
   },
   isPromptCustomized: false,
   threeDChecks: {
@@ -97,7 +99,39 @@ export default function App() {
       const saved = localStorage.getItem('renderia_lab_state');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.character) setCharacter(parsed.character);
+        if (parsed.character) {
+          const char = parsed.character;
+          if (char.appearance) {
+            // Harmonize color palette with current presets
+            if (char.appearance.colorPalette?.id) {
+              const matchedPalette = COLOR_PALETTES.find((p) => p.id === char.appearance.colorPalette.id);
+              if (matchedPalette) {
+                char.appearance.colorPalette = {
+                  ...matchedPalette,
+                  ...char.appearance.colorPalette,
+                  name: matchedPalette.name,
+                  promptColors: matchedPalette.promptColors,
+                  colors: matchedPalette.colors,
+                };
+              }
+            }
+            // Harmonize pose if missing or using old specialGear
+            if (!char.appearance.pose && char.appearance.specialGear) {
+              char.appearance.pose = char.appearance.specialGear;
+            }
+            if (char.appearance.pose?.id) {
+              const matchedPose = POSES.find((p) => p.id === char.appearance.pose.id);
+              if (matchedPose) {
+                char.appearance.pose = {
+                  ...matchedPose,
+                  ...char.appearance.pose,
+                  name: matchedPose.name,
+                };
+              }
+            }
+          }
+          setCharacter(char);
+        }
         if (parsed.currentStage) setCurrentStage(parsed.currentStage);
         if (parsed.badges) setBadges(parsed.badges);
         if (parsed.completedStages) setCompletedStages(parsed.completedStages);
@@ -158,6 +192,7 @@ export default function App() {
   const handleStage3Complete = () => {
     markBadgeEarned(2);
     setCompletedStages((prev) => ({ ...prev, stage3_training: true }));
+    updateCharacter({ hasLearnedStyle: true });
     setCurrentStage('stage4_prompt');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -247,6 +282,7 @@ export default function App() {
         {currentStage === 'stage3_training' && (
           <Stage3PromptTraining
             character={character}
+            onUpdate={updateCharacter}
             onNext={handleStage3Complete}
             onPrev={() => setCurrentStage('stage2_appearance')}
           />

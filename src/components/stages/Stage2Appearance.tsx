@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CharacterData, AppearanceState } from '../../types/avatar';
-import { COLOR_PALETTES, OUTFITS, ACCESSORIES, EXPRESSIONS, SPECIAL_GEAR, ROLES } from '../../data/labData';
+import { COLOR_PALETTES, OUTFITS, ACCESSORIES, EXPRESSIONS, POSES, ROLES, resolvePaletteColors } from '../../data/labData';
 import { MascotPixel } from '../MascotPixel';
 import { playClickSound, playSelectSound, playSuccessSound } from '../../services/soundEffects';
 import {
@@ -14,7 +14,10 @@ import {
   Check,
   Pipette,
   Wand2,
+  UserRound,
+  Activity,
 } from 'lucide-react';
+import { LivePromptBanner } from '../LivePromptBanner';
 
 interface Stage2AppearanceProps {
   character: CharacterData;
@@ -23,7 +26,7 @@ interface Stage2AppearanceProps {
   onPrev: () => void;
 }
 
-type AppearanceTab = 'colors' | 'outfit' | 'accessory' | 'expression' | 'gear';
+type AppearanceTab = 'colors' | 'outfit' | 'accessory' | 'expression' | 'pose';
 
 export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
   character,
@@ -58,14 +61,11 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
   );
 
   const [customExpressionName, setCustomExpressionName] = useState<string>(
-    appearance.expression.id === 'custom_expression' ? appearance.expression.name : 'Супер-восторг'
-  );
-  const [customExpressionEmoji, setCustomExpressionEmoji] = useState<string>(
-    appearance.expression.id === 'custom_expression' ? appearance.expression.emoji : '✨'
+    appearance.expression.id === 'custom_expression' ? appearance.expression.name : 'Загадочный'
   );
 
-  const [customGearName, setCustomGearName] = useState<string>(
-    appearance.specialGear.id === 'custom_gear' ? appearance.specialGear.name : 'Лазерный компас'
+  const [customPoseName, setCustomPoseName] = useState<string>(
+    appearance.pose?.id === 'custom_pose' ? appearance.pose.name : 'Стойка ниндзя'
   );
 
   const roleMeta = ROLES.find((r) => r.id === character.role) || ROLES[0];
@@ -111,9 +111,9 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
     onUpdate({ appearance: updated });
   };
 
-  const updateGear = (gear: (typeof SPECIAL_GEAR)[0]) => {
-    triggerSelectEffect(gear.id);
-    const updated: AppearanceState = { ...appearance, specialGear: gear };
+  const updatePose = (pose: (typeof POSES)[0]) => {
+    triggerSelectEffect(pose.id);
+    const updated: AppearanceState = { ...appearance, pose };
     setAppearance(updated);
     onUpdate({ appearance: updated });
   };
@@ -124,6 +124,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
     const customPalette = {
       id: 'custom_palette',
       name: palName.trim() || 'Свой цвет',
+      promptColors: palName.trim() ? `${palName.trim()} (${primary}, ${secondary}, ${accent})` : `${primary}, ${secondary}, ${accent}`,
       primary,
       secondary,
       accent,
@@ -155,25 +156,25 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
     onUpdate({ appearance: updated });
   };
 
-  const applyCustomExpression = (name: string, emoji: string) => {
+  const applyCustomExpression = (name: string) => {
     const customExpr = {
       id: 'custom_expression',
-      name: name.trim() || 'Своя эмоция',
-      emoji: emoji || '✨',
-      description: 'Уникальное авторское выражение лица',
+      name: name.trim() || 'Свой характер',
+      emoji: '✨',
+      description: 'Уникальная авторская черта характера героя',
     };
     const updated: AppearanceState = { ...appearance, expression: customExpr };
     setAppearance(updated);
     onUpdate({ appearance: updated });
   };
 
-  const applyCustomGear = (name: string) => {
-    const customG = {
-      id: 'custom_gear',
-      name: name.trim() || 'Своя деталь',
-      description: 'Уникальная авторская технологичная деталь',
+  const applyCustomPose = (name: string) => {
+    const customP = {
+      id: 'custom_pose',
+      name: name.trim() || 'Своя поза',
+      description: 'Уникальная авторская поза персонажа',
     };
-    const updated: AppearanceState = { ...appearance, specialGear: customG };
+    const updated: AppearanceState = { ...appearance, pose: customP };
     setAppearance(updated);
     onUpdate({ appearance: updated });
   };
@@ -207,14 +208,14 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
       case 'expression':
         return {
           speech:
-            'Эмоция оживляет арт! Уверенная улыбка или исследовательский восторг сразу показывают дух героя!',
-          tip: 'Аниматоры всегда начинают с выражения глаз — именно они передают эмоции персонажа!',
+            'Характер и эмоция оживляют 3D-героя! Выбирай черту личности, как в The Sims — от открытого весельчака до хитрого стратега!',
+          tip: 'Каждая черта лица отражает внутренний мир персонажа в едином стиле нашего героя!',
         };
-      case 'gear':
+      case 'pose':
         return {
           speech:
-            'Особенная фишка — секретный штрих! Светодиодные кроссовки или голо-карта сделают героя неповторимым!',
-          tip: 'Уникальная технологичная деталь вызывает восторг у друзей, когда они рассматривают концепт-доску!',
+            'Поза задает динамику и характер героя! Т-поза идеальна для 3D-моделирования, а боевая стойка добавит драйва!',
+          tip: 'Выбери одну из 6 готовых поз для 3D или впиши свою уникальную стойку!',
         };
     }
   };
@@ -237,7 +238,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Side: Category Navigator & Illustrated Options (7 cols) */}
         <div className="lg:col-span-7 space-y-4">
-          {/* Category Tabs */}
+          {/* Category Tabs: Палитра, Костюм, Аксессуар, Характер, Поза */}
           <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl overflow-x-auto border border-slate-200">
             <button
               onClick={() => {
@@ -295,23 +296,23 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                   : 'text-slate-600 hover:text-[#252735]'
               }`}
             >
-              <Smile className="w-4 h-4 text-pink-500" />
-              <span>Эмоция</span>
+              <UserRound className="w-4 h-4 text-indigo-500" />
+              <span>Характер</span>
             </button>
 
             <button
               onClick={() => {
                 playClickSound();
-                setActiveTab('gear');
+                setActiveTab('pose');
               }}
               className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === 'gear'
+                activeTab === 'pose'
                   ? 'bg-white text-[#252735] shadow-xs'
                   : 'text-slate-600 hover:text-[#252735]'
               }`}
             >
-              <Sparkles className="w-4 h-4 text-purple-500" />
-              <span>Особая деталь</span>
+              <Activity className="w-4 h-4 text-purple-500" />
+              <span>Поза</span>
             </button>
           </div>
 
@@ -330,7 +331,6 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                  {/* Preset Color Palettes (6 items) */}
                   {COLOR_PALETTES.map((pal) => {
                     const isSelected = appearance.colorPalette.id === pal.id;
                     const isPopping = justSelectedId === pal.id;
@@ -338,7 +338,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                       <div
                         key={pal.id}
                         onClick={() => updatePalette(pal)}
-                        className={`group relative p-3 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                        className={`group relative p-2.5 sm:p-3 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
                           isPopping ? 'animate-dressup-pop' : ''
                         } ${
                           isSelected
@@ -353,7 +353,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                           </div>
                         )}
 
-                        <div className="space-y-2.5">
+                        <div className="space-y-2">
                           {/* Large Color Swatches Grouped Together */}
                           <div className="flex items-center justify-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
                             <div
@@ -373,13 +373,10 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                             />
                           </div>
 
-                          {/* Palette Title */}
-                          <div className="text-center">
-                            <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
-                              {pal.name}
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-semibold block truncate">
-                              {pal.primary} • {pal.accent}
+                          {/* Descriptive Color Label (Main Label) */}
+                          <div className="text-center px-1 min-h-[1.75rem] flex items-center justify-center">
+                            <span className="font-bold text-xs sm:text-[13px] text-[#252735] leading-snug text-center first-letter:uppercase">
+                              {pal.promptColors}
                             </span>
                           </div>
                         </div>
@@ -402,7 +399,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                             );
                           }
                         }}
-                        className={`group relative p-3 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                        className={`group relative p-2.5 sm:p-3 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
                           isCustomSelected
                             ? 'border-[#252735] bg-sky-50 shadow-sm ring-3 ring-sky-300'
                             : 'border-dashed border-sky-300 hover:border-sky-400 bg-sky-50/50 hover:bg-sky-50'
@@ -504,7 +501,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                           </div>
 
                           <div className="text-center">
-                            <span className="font-display font-black text-xs sm:text-sm text-[#252735] flex items-center justify-center gap-1">
+                            <span className="font-display font-black text-xs sm:text-sm text-[#252735] flex items-center justify-center gap-1 mb-1">
                               <Wand2 className="w-3.5 h-3.5 text-sky-500" />
                               <span>Свой цвет</span>
                             </span>
@@ -518,7 +515,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                                 applyCustomColor(customPrimary, customSecondary, customAccent, val);
                               }}
                               placeholder="Название цвета"
-                              className="w-full text-[11px] font-bold text-center mt-1 py-1 px-1.5 rounded-lg border border-slate-300 focus:outline-none focus:border-sky-500 bg-white"
+                              className="w-full text-xs sm:text-sm font-bold text-[#252735] text-center py-1.5 px-2.5 rounded-xl border-2 border-sky-200 focus:border-[#252735] focus:ring-2 focus:ring-[#B9F24D] bg-white shadow-xs outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
                             />
                           </div>
                         </div>
@@ -529,7 +526,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             )}
 
-            {/* 2. OUTFIT (6 3D Pixar Outfits + 7th Custom Card with Text Input) */}
+            {/* 2. OUTFIT (6 3D Pixar Outfits + 7th Custom Card with Improved Text Input) */}
             {activeTab === 'outfit' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -574,9 +571,9 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                           />
                         </div>
 
-                        {/* Outfit Short Title */}
-                        <div className="mt-2 text-center w-full px-1">
-                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
+                        {/* Outfit Short Title with Safe Multi-line Wrap */}
+                        <div className="mt-2 text-center w-full px-1 min-h-[2.25rem] flex items-center justify-center">
+                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block line-clamp-2 leading-snug break-words">
                             {outfit.name}
                           </span>
                         </div>
@@ -584,7 +581,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                     );
                   })}
 
-                  {/* 7th Card: "Свой вариант" with Creative Icon and Inline Text Input */}
+                  {/* 7th Card: "Свой вариант" with Creative Icon and Improved Text Input */}
                   {(() => {
                     const isCustomSelected = appearance.outfit.id === 'custom_outfit';
                     return (
@@ -617,7 +614,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                         {/* Custom Outfit Title & Text Input */}
                         <div className="mt-2 text-center w-full px-1">
-                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
+                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate mb-1">
                             Свой вариант
                           </span>
                           <input
@@ -630,7 +627,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                               applyCustomOutfit(val);
                             }}
                             placeholder="Назови костюм..."
-                            className="w-full text-[11px] font-bold text-center mt-1 py-1 px-1.5 rounded-lg border border-slate-300 focus:outline-none focus:border-sky-500 bg-white"
+                            className="w-full text-xs sm:text-sm font-bold text-[#252735] text-center py-2 px-3 rounded-xl border-2 border-sky-200 focus:border-[#252735] focus:ring-2 focus:ring-[#B9F24D] bg-white shadow-xs outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
                           />
                         </div>
                       </div>
@@ -640,7 +637,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             )}
 
-            {/* 3. ACCESSORIES (6 3D Pixar Accessories + 7th Custom Card with Text Input) */}
+            {/* 3. ACCESSORIES (6 3D Pixar Accessories + 7th Custom Card with Improved Text Input) */}
             {activeTab === 'accessory' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -685,9 +682,9 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                           />
                         </div>
 
-                        {/* Accessory Short Title */}
-                        <div className="mt-2 text-center w-full px-1">
-                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
+                        {/* Accessory Short Title with Safe Multi-line Wrap */}
+                        <div className="mt-2 text-center w-full px-1 min-h-[2.25rem] flex items-center justify-center">
+                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block line-clamp-2 leading-snug break-words">
                             {acc.name}
                           </span>
                         </div>
@@ -695,7 +692,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                     );
                   })}
 
-                  {/* 7th Card: "Свой вариант" with Creative Icon and Inline Text Input */}
+                  {/* 7th Card: "Свой вариант" with Creative Icon and Improved Text Input */}
                   {(() => {
                     const isCustomSelected = appearance.accessory.id === 'custom_accessory';
                     return (
@@ -728,7 +725,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                         {/* Custom Accessory Title & Text Input */}
                         <div className="mt-2 text-center w-full px-1">
-                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
+                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate mb-1">
                             Свой вариант
                           </span>
                           <input
@@ -741,7 +738,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                               applyCustomAccessory(val);
                             }}
                             placeholder="Назови аксессуар..."
-                            className="w-full text-[11px] font-bold text-center mt-1 py-1 px-1.5 rounded-lg border border-slate-300 focus:outline-none focus:border-amber-500 bg-white"
+                            className="w-full text-xs sm:text-sm font-bold text-[#252735] text-center py-2 px-3 rounded-xl border-2 border-amber-200 focus:border-[#252735] focus:ring-2 focus:ring-[#B9F24D] bg-white shadow-xs outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
                           />
                         </div>
                       </div>
@@ -751,15 +748,15 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             )}
 
-            {/* 4. EXPRESSIONS (6 Expressions + 7th Custom Card with Text Input) */}
+            {/* 4. TRAITS & PERSONALITY (6 Consistent Sims-Style Character Portraits + 7th Custom Card) */}
             {activeTab === 'expression' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display font-black text-lg text-[#252735]">
-                    Выражение лица и эмоция
+                    Характер и личность героя
                   </h3>
-                  <span className="text-xs font-bold text-pink-600 bg-pink-50 px-2.5 py-1 rounded-full border border-pink-200">
-                    6 эмоций + свой вариант
+                  <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-200">
+                    6 черт в стиле The Sims
                   </span>
                 </div>
 
@@ -775,27 +772,30 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                           isPopping ? 'animate-dressup-pop' : ''
                         } ${
                           isSelected
-                            ? 'border-[#252735] bg-[#BDA7FF]/20 shadow-sm ring-3 ring-[#BDA7FF]/40'
+                            ? 'border-[#252735] bg-indigo-50/70 shadow-sm ring-3 ring-indigo-300'
                             : 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100/80'
                         }`}
                       >
                         {/* Selected Check Badge */}
                         {isSelected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#BDA7FF] border-2 border-[#252735] flex items-center justify-center text-[#252735] z-10 shadow-xs">
+                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-indigo-500 border-2 border-[#252735] flex items-center justify-center text-white z-10 shadow-xs">
                             <Check className="w-3 h-3 stroke-[3]" />
                           </div>
                         )}
 
-                        {/* Large Expressive Emoji Portrait */}
-                        <div className="w-full aspect-[4/3] rounded-xl flex items-center justify-center bg-gradient-to-br from-slate-100 to-white border border-slate-200 shadow-2xs group-hover:scale-105 transition-transform">
-                          <span className="text-4xl select-none filter drop-shadow-sm">
-                            {expr.emoji}
-                          </span>
+                        {/* Consistent 3D Pixar Teen Portrait */}
+                        <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-white border border-slate-200 shadow-2xs group-hover:scale-102 transition-transform">
+                          <img
+                            src={expr.image}
+                            alt={expr.name}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
                         </div>
 
-                        {/* Expression Short Title */}
-                        <div className="mt-2 text-center w-full px-1">
-                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
+                        {/* Trait Title with Safe Multi-line Wrap */}
+                        <div className="mt-2 text-center w-full px-1 min-h-[2.25rem] flex items-center justify-center">
+                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block line-clamp-2 leading-snug break-words">
                             {expr.name}
                           </span>
                         </div>
@@ -803,57 +803,40 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                     );
                   })}
 
-                  {/* 7th Card: "Свой вариант" with Emoji selection + Text Input */}
+                  {/* 7th Card: "Свой вариант" with Neutral Avatar Icon and Improved Text Input */}
                   {(() => {
                     const isCustomSelected = appearance.expression.id === 'custom_expression';
-                    const quickEmojis = ['✨', '🔥', '😺', '🦊', '⚡', '🌈'];
                     return (
                       <div
                         onClick={() => {
                           if (!isCustomSelected) {
-                            applyCustomExpression(customExpressionName, customExpressionEmoji);
+                            applyCustomExpression(customExpressionName);
                           }
                         }}
                         className={`group relative p-2.5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center justify-between ${
                           isCustomSelected
-                            ? 'border-[#252735] bg-pink-50 shadow-sm ring-3 ring-pink-300'
-                            : 'border-dashed border-pink-300 hover:border-pink-400 bg-pink-50/50 hover:bg-pink-50'
+                            ? 'border-[#252735] bg-indigo-50/70 shadow-sm ring-3 ring-indigo-300'
+                            : 'border-dashed border-indigo-300 hover:border-indigo-400 bg-indigo-50/40 hover:bg-indigo-50'
                         }`}
                       >
                         {/* Selected Check Badge */}
                         {isCustomSelected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-pink-400 border-2 border-[#252735] flex items-center justify-center text-white z-10 shadow-xs">
+                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-indigo-500 border-2 border-[#252735] flex items-center justify-center text-white z-10 shadow-xs">
                             <Check className="w-3 h-3 stroke-[3]" />
                           </div>
                         )}
 
-                        {/* Emoji Quick Picker Container */}
-                        <div className="w-full aspect-[4/3] rounded-xl flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 via-rose-50 to-purple-100 border border-pink-200 shadow-2xs p-1">
-                          <span className="text-3xl mb-1 select-none filter drop-shadow-sm">
-                            {customExpressionEmoji}
+                        {/* Creative Custom Icon Banner */}
+                        <div className="w-full aspect-[4/3] rounded-xl flex flex-col items-center justify-center bg-gradient-to-br from-indigo-100 via-slate-50 to-purple-100 border border-indigo-200 shadow-2xs group-hover:scale-102 transition-transform">
+                          <UserRound className="w-8 h-8 text-indigo-600 mb-1" />
+                          <span className="text-[10px] font-bold text-indigo-700 bg-white/80 px-2 py-0.5 rounded-full border border-indigo-200">
+                            Твой характер
                           </span>
-                          <div className="flex gap-1">
-                            {quickEmojis.map((em) => (
-                              <button
-                                key={em}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setCustomExpressionEmoji(em);
-                                  applyCustomExpression(customExpressionName, em);
-                                }}
-                                className={`text-xs p-1 rounded-md transition-transform hover:scale-125 cursor-pointer ${
-                                  customExpressionEmoji === em ? 'bg-white shadow-xs' : ''
-                                }`}
-                              >
-                                {em}
-                              </button>
-                            ))}
-                          </div>
                         </div>
 
                         {/* Custom Expression Title & Text Input */}
                         <div className="mt-2 text-center w-full px-1">
-                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
+                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate mb-1">
                             Свой вариант
                           </span>
                           <input
@@ -863,10 +846,10 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                             onChange={(e) => {
                               const val = e.target.value;
                               setCustomExpressionName(val);
-                              applyCustomExpression(val, customExpressionEmoji);
+                              applyCustomExpression(val);
                             }}
-                            placeholder="Назови эмоцию..."
-                            className="w-full text-[11px] font-bold text-center mt-1 py-1 px-1.5 rounded-lg border border-slate-300 focus:outline-none focus:border-pink-500 bg-white"
+                            placeholder="Назови характер (например, Загадочный)..."
+                            className="w-full text-xs sm:text-sm font-bold text-[#252735] text-center py-2 px-3 rounded-xl border-2 border-indigo-200 focus:border-[#252735] focus:ring-2 focus:ring-[#B9F24D] bg-white shadow-xs outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
                           />
                         </div>
                       </div>
@@ -876,26 +859,26 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             )}
 
-            {/* 5. SPECIAL GEAR (6 3D Pixar Gear + 7th Custom Card with Text Input) */}
-            {activeTab === 'gear' && (
+            {/* 5. POSE (6 3D Poses + 7th Custom Card with Text Input) */}
+            {activeTab === 'pose' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display font-black text-lg text-[#252735]">
-                    Особенная уникальная деталь
+                    Поза персонажа
                   </h3>
                   <span className="text-xs font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200">
-                    6 деталей + свой вариант
+                    6 поз + свой вариант
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                  {SPECIAL_GEAR.map((gear) => {
-                    const isSelected = appearance.specialGear.id === gear.id;
-                    const isPopping = justSelectedId === gear.id;
+                  {POSES.map((pose) => {
+                    const isSelected = appearance.pose?.id === pose.id;
+                    const isPopping = justSelectedId === pose.id;
                     return (
                       <div
-                        key={gear.id}
-                        onClick={() => updateGear(gear)}
+                        key={pose.id}
+                        onClick={() => updatePose(pose)}
                         className={`group relative p-2.5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center justify-between ${
                           isPopping ? 'animate-dressup-pop' : ''
                         } ${
@@ -911,34 +894,34 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                           </div>
                         )}
 
-                        {/* Rich 3D Pixar Illustration */}
+                        {/* Rich 3D Pose Illustration */}
                         <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-white border border-slate-200 shadow-2xs group-hover:scale-102 transition-transform">
                           <img
-                            src={gear.image}
-                            alt={gear.name}
+                            src={pose.image}
+                            alt={pose.name}
                             className="w-full h-full object-cover"
                             referrerPolicy="no-referrer"
                           />
                         </div>
 
-                        {/* Special Gear Short Title */}
-                        <div className="mt-2 text-center w-full px-1">
-                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
-                            {gear.name}
+                        {/* Pose Short Title with Safe Multi-line Wrap */}
+                        <div className="mt-2 text-center w-full px-1 min-h-[2.25rem] flex items-center justify-center">
+                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block line-clamp-2 leading-snug break-words">
+                            {pose.name}
                           </span>
                         </div>
                       </div>
                     );
                   })}
 
-                  {/* 7th Card: "Свой вариант" with Creative Icon and Inline Text Input */}
+                  {/* 7th Card: "Свой вариант" with Creative Icon and Improved Text Input */}
                   {(() => {
-                    const isCustomSelected = appearance.specialGear.id === 'custom_gear';
+                    const isCustomSelected = appearance.pose?.id === 'custom_pose';
                     return (
                       <div
                         onClick={() => {
                           if (!isCustomSelected) {
-                            applyCustomGear(customGearName);
+                            applyCustomPose(customPoseName);
                           }
                         }}
                         className={`group relative p-2.5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col items-center justify-between ${
@@ -956,28 +939,28 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                         {/* Creative Custom Icon Banner */}
                         <div className="w-full aspect-[4/3] rounded-xl flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 via-fuchsia-50 to-pink-100 border border-purple-200 shadow-2xs group-hover:scale-102 transition-transform">
-                          <Sparkles className="w-8 h-8 text-purple-600 mb-1" />
+                          <Activity className="w-8 h-8 text-purple-600 mb-1" />
                           <span className="text-[10px] font-bold text-purple-700 bg-white/80 px-2 py-0.5 rounded-full border border-purple-200">
-                            Твоя деталь
+                            Твоя поза
                           </span>
                         </div>
 
-                        {/* Custom Gear Title & Text Input */}
+                        {/* Custom Pose Title & Text Input */}
                         <div className="mt-2 text-center w-full px-1">
-                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
+                          <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate mb-1">
                             Свой вариант
                           </span>
                           <input
                             type="text"
-                            value={customGearName}
+                            value={customPoseName}
                             onClick={(e) => e.stopPropagation()}
                             onChange={(e) => {
                               const val = e.target.value;
-                              setCustomGearName(val);
-                              applyCustomGear(val);
+                              setCustomPoseName(val);
+                              applyCustomPose(val);
                             }}
-                            placeholder="Назови деталь..."
-                            className="w-full text-[11px] font-bold text-center mt-1 py-1 px-1.5 rounded-lg border border-slate-300 focus:outline-none focus:border-purple-500 bg-white"
+                            placeholder="Назови позу (например, Стойка ниндзя)..."
+                            className="w-full text-xs sm:text-sm font-bold text-[#252735] text-center py-2 px-3 rounded-xl border-2 border-purple-200 focus:border-[#252735] focus:ring-2 focus:ring-[#B9F24D] bg-white shadow-xs outline-none transition-all placeholder:text-slate-400 placeholder:font-normal"
                           />
                         </div>
                       </div>
@@ -991,7 +974,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
             <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500">
               <span>Кликни по предмету, чтобы добавить его на концепт-доску</span>
               <div className="flex gap-1.5">
-                {(['colors', 'outfit', 'accessory', 'expression', 'gear'] as AppearanceTab[]).map(
+                {(['colors', 'outfit', 'accessory', 'expression', 'pose'] as AppearanceTab[]).map(
                   (tab) => (
                     <button
                       key={tab}
@@ -1021,9 +1004,9 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
             </span>
           </div>
 
-          {/* Hero Profile Header */}
-          <div className="bg-gradient-to-r from-slate-900 via-[#252735] to-slate-900 text-white rounded-2xl p-3.5 border-2 border-[#252735] flex items-center justify-between">
-            <div className="min-w-0">
+            {/* Hero Profile Header with Avatar Preview */}
+          <div className="bg-gradient-to-r from-slate-900 via-[#252735] to-slate-900 text-white rounded-2xl p-3.5 border-2 border-[#252735] flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
               <h4 className="font-display font-black text-base truncate text-white">
                 {character.name || 'Безымянный Герой'}
               </h4>
@@ -1031,9 +1014,17 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                 {roleTitle}
               </p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-xl shrink-0">
-              {appearance.expression.emoji}
-            </div>
+            {appearance.expression.image ? (
+              <img
+                src={appearance.expression.image}
+                alt={appearance.expression.name}
+                className="w-11 h-11 rounded-xl object-cover border-2 border-white/40 shadow-xs shrink-0"
+              />
+            ) : (
+              <div className="w-11 h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-indigo-300 shrink-0">
+                <UserRound className="w-6 h-6" />
+              </div>
+            )}
           </div>
 
           {/* VISUAL COLLAGE (MOOD BOARD TILES) */}
@@ -1065,7 +1056,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                     Костюм героя
                   </span>
-                  <span className="font-display font-black text-sm text-[#252735] truncate block">
+                  <span className="font-display font-black text-sm text-[#252735] block line-clamp-1 break-words">
                     {appearance.outfit.name}
                   </span>
                 </div>
@@ -1075,78 +1066,101 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             </div>
 
-            {/* 2. Two-Column Grid: Accessory + Special Gear */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* 2. Three-Column Grid: Character Trait + Accessory + Special Gear */}
+            <div className="grid grid-cols-3 gap-2.5">
+              {/* Character Trait Tile (Consistent 3D Portrait) */}
+              <div className="rounded-2xl overflow-hidden border-2 border-slate-200 bg-white flex flex-col justify-between group">
+                <div className="aspect-[4/3] w-full overflow-hidden bg-slate-50">
+                  {appearance.expression.image ? (
+                    <img
+                      src={appearance.expression.image}
+                      alt={appearance.expression.name}
+                      className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 p-2 text-center">
+                      <UserRound className="w-7 h-7 mb-1" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-2 bg-white border-t border-slate-100 flex flex-col justify-center min-h-[3.25rem]">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Характер
+                  </span>
+                  <span className="font-display font-black text-xs text-[#252735] line-clamp-2 leading-tight break-words">
+                    {appearance.expression.name}
+                  </span>
+                </div>
+              </div>
+
               {/* Accessory Tile */}
-              <div className="rounded-2xl overflow-hidden border-2 border-slate-200 bg-white flex flex-col">
+              <div className="rounded-2xl overflow-hidden border-2 border-slate-200 bg-white flex flex-col justify-between group">
                 <div className="aspect-[4/3] w-full overflow-hidden bg-slate-50">
                   {appearance.accessory.image ? (
                     <img
                       src={appearance.accessory.image}
                       alt={appearance.accessory.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 text-amber-600 p-2 text-center">
                       <Wand2 className="w-7 h-7 mb-1" />
-                      <span className="text-[11px] font-bold text-[#252735] line-clamp-1">
-                        {appearance.accessory.name}
-                      </span>
                     </div>
                   )}
                 </div>
-                <div className="p-2.5">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                <div className="p-2 bg-white border-t border-slate-100 flex flex-col justify-center min-h-[3.25rem]">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
                     Аксессуар
                   </span>
-                  <span className="font-display font-black text-xs text-[#252735] truncate block">
+                  <span className="font-display font-black text-xs text-[#252735] line-clamp-2 leading-tight break-words">
                     {appearance.accessory.name}
                   </span>
                 </div>
               </div>
 
-              {/* Special Gear Tile */}
-              <div className="rounded-2xl overflow-hidden border-2 border-slate-200 bg-white flex flex-col">
+              {/* Pose Tile */}
+              <div className="rounded-2xl overflow-hidden border-2 border-slate-200 bg-white flex flex-col justify-between group">
                 <div className="aspect-[4/3] w-full overflow-hidden bg-slate-50">
-                  {appearance.specialGear.image ? (
+                  {appearance.pose?.image ? (
                     <img
-                      src={appearance.specialGear.image}
-                      alt={appearance.specialGear.name}
-                      className="w-full h-full object-cover"
+                      src={appearance.pose.image}
+                      alt={appearance.pose.name}
+                      className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 text-purple-600 p-2 text-center">
-                      <Sparkles className="w-7 h-7 mb-1" />
-                      <span className="text-[11px] font-bold text-[#252735] line-clamp-1">
-                        {appearance.specialGear.name}
-                      </span>
+                      <Activity className="w-7 h-7 mb-1" />
                     </div>
                   )}
                 </div>
-                <div className="p-2.5">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Особая деталь
+                <div className="p-2 bg-white border-t border-slate-100 flex flex-col justify-center min-h-[3.25rem]">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Поза
                   </span>
-                  <span className="font-display font-black text-xs text-[#252735] truncate block">
-                    {appearance.specialGear.name}
+                  <span className="font-display font-black text-xs text-[#252735] line-clamp-2 leading-tight break-words">
+                    {appearance.pose?.name || 'Стоит ровно (T-поза)'}
                   </span>
                 </div>
               </div>
             </div>
 
             {/* 3. Color Swatches Strip */}
-            <div className="p-3 rounded-2xl bg-slate-50 border-2 border-slate-200 flex items-center justify-between">
-              <div>
+            <div className="p-3 rounded-2xl bg-slate-50 border-2 border-slate-200 flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Палитра костюма
                 </span>
-                <span className="font-display font-black text-xs sm:text-sm text-[#252735]">
-                  {appearance.colorPalette.name}
+                <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
+                  {COLOR_PALETTES.find((p) => p.id === appearance.colorPalette.id)?.name || appearance.colorPalette.name}
+                </span>
+                <span className="text-[10px] font-semibold text-slate-500 block truncate">
+                  Цвета в промпте: {resolvePaletteColors(appearance.colorPalette)}
                 </span>
               </div>
-              <div className="flex items-center gap-2 p-1 bg-white rounded-xl border border-slate-200 shadow-2xs">
+              <div className="flex items-center gap-2 p-1 bg-white rounded-xl border border-slate-200 shadow-2xs shrink-0">
                 <span
                   className="w-6 h-6 rounded-full border border-slate-300 shadow-xs"
                   style={{ backgroundColor: appearance.colorPalette.primary }}
@@ -1172,6 +1186,9 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Dynamic Live Prompt Preview Banner */}
+      <LivePromptBanner character={{ ...character, appearance }} />
 
       {/* Nav Actions */}
       <div className="flex items-center justify-between pt-4">

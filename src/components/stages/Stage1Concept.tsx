@@ -4,6 +4,7 @@ import { ROLES } from '../../data/labData';
 import pixelMascotImg from '../../assets/pix/pixel1.webp';
 import { playClickSound, playSelectSound, playSuccessSound } from '../../services/soundEffects';
 import { ArrowRight, Check, Wand2, Sparkles, Plus } from 'lucide-react';
+import { LivePromptBanner } from '../LivePromptBanner';
 
 interface Stage1ConceptProps {
   character: CharacterData;
@@ -443,6 +444,17 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Dynamic Live Prompt Preview Banner */}
+      <LivePromptBanner
+        character={{
+          ...character,
+          role: selectedRole,
+          customRoleTitle: selectedRole === 'custom' ? customRoleTitle : undefined,
+          name: heroName,
+          power: heroPower,
+        }}
+      />
     </div>
   );
 };

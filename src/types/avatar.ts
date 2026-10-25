@@ -29,6 +29,8 @@ export interface AppearanceState {
   colorPalette: {
     id: string;
     name: string;
+    promptColors: string;
+    colors?: string[];
     primary: string;
     secondary: string;
     accent: string;
@@ -50,8 +52,15 @@ export interface AppearanceState {
     name: string;
     emoji: string;
     description: string;
+    image?: string;
   };
-  specialGear: {
+  pose: {
+    id: string;
+    name: string;
+    description: string;
+    image?: string;
+  };
+  specialGear?: {
     id: string;
     name: string;
     description: string;
@@ -65,9 +74,11 @@ export interface CharacterData {
   customRoleTitle?: string;
   power: string;
   style: VisualStyleId;
+  hasLearnedStyle?: boolean;
   appearance: AppearanceState;
   customPromptRu?: string;
   customPromptEn?: string;
+  livePrompt?: string;
   isPromptCustomized: boolean;
   generatedImageUrl?: string;
   generatedImageSource: 'sample' | 'uploaded' | null;
