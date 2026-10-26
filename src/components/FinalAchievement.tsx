@@ -15,6 +15,8 @@ import {
   Shield,
   Shirt,
   Glasses,
+  Smile,
+  Crown,
   Box,
   Palette,
   Cpu,
@@ -203,9 +205,14 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
       ? character.customRoleTitle
       : roleMeta.title;
 
+  const characterTrait =
+    character.appearance?.expression?.name ||
+    character.appearance?.pose?.name ||
+    'Жизнерадостный';
+
   const skillsData = [
     {
-      name: '3D Моделирование',
+      name: '3D-моделирование с ИИ',
       Icon: Box,
       barGradient: 'linear-gradient(90deg, #503CFA 0%, #62C9F5 100%)',
     },
@@ -248,7 +255,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
           mood="celebrate"
           speechText={`Поздравляю, юный дизайнер! Твой герой «${
             character.name || 'Герой'
-          }» спроектирован по всем канонам 3D-геймдева. Скачай свой именной сертификат от RENDERIA & KIBERONE в оригинальном качестве 1792x2400!`}
+          }» спроектирован по всем канонам 3D-геймдева. Скачивай свой именной сертификат от RENDERIA & KIBERONE и делись успехом с друзьями!`}
           tip="Введи своё реальное имя в поле ниже, чтобы оно появилось на сертификате перед скачиванием."
         />
       </div>
@@ -335,9 +342,9 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
               }}
             />
 
-            {/* Character Frame (Left Side):
+            {/* Character Frame Container (Left Side):
                 position: absolute; left: 205px; top: 614px; width: 682px; height: 809px; z-index: 10;
-                background: transparent !important; border: none; */}
+                Flexbox centering without outer box styling */}
             <div
               style={{
                 position: 'absolute',
@@ -346,28 +353,25 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                 width: '682px',
                 height: '809px',
                 zIndex: 10,
-                background: 'transparent',
-                backgroundColor: 'transparent',
-                border: 'none',
-                boxShadow: 'none',
                 display: 'flex',
-                alignItems: 'center',
                 justifyContent: 'center',
+                alignItems: 'center',
               }}
             >
-              {/* Inner character image: width: 100%; height: 100%; object-fit: contain; */}
+              {/* Inner character image: frame applied directly to wrap tightly around the image */}
               <img
                 src={character.generatedImageUrl || ASSETS.robloxSampleHero}
                 alt="Концепт персонажа"
                 crossOrigin="anonymous"
                 loading="eager"
                 style={{
-                  width: '100%',
-                  height: '100%',
+                  maxWidth: '100%',
+                  maxHeight: '100%',
                   objectFit: 'contain',
-                  background: 'transparent',
-                  backgroundColor: 'transparent',
-                  border: 'none',
+                  border: '8px solid #62C9F5',
+                  borderRadius: '30px',
+                  boxShadow: '0 0 25px rgba(98, 201, 245, 0.6)',
+                  backgroundColor: '#FFFFFF',
                 }}
               />
 
@@ -401,9 +405,9 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
               </div>
             </div>
 
-            {/* Text Cards Grid (Right Side):
+            {/* Right Column (Flexbox Column):
                 position: absolute; left: 927px; top: 614px; width: 660px; height: 809px; z-index: 10;
-                display: grid; grid-template-columns: 1fr 1fr; gap: 20px; */}
+                Name & Achievement Banner on top + Compact Suit & Accessory side-by-side below */}
             <div
               style={{
                 position: 'absolute',
@@ -412,19 +416,20 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                 width: '660px',
                 height: '809px',
                 zIndex: 10,
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
+                display: 'flex',
+                flexDirection: 'column',
                 gap: '20px',
               }}
             >
-              {/* 1. Name Card */}
+              {/* 1. Name & Achievement Card (fills width 660px, center-aligned) */}
               <div
                 style={{
+                  flex: 1,
                   background: '#FFFFFF',
                   borderRadius: '32px',
                   boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.12)',
                   border: '2px solid #FFFFFF',
-                  padding: '28px 20px',
+                  padding: '36px 36px',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -432,209 +437,197 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                   textAlign: 'center',
                 }}
               >
+                {/* Small Top-Center Crown Icon */}
                 <div
                   style={{
-                    width: '90px',
-                    height: '90px',
+                    width: '64px',
+                    height: '64px',
                     borderRadius: '9999px',
                     background: '#503CFA',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
-                    marginBottom: '16px',
+                    boxShadow: '0 6px 14px rgba(80, 60, 250, 0.35)',
+                    marginBottom: '12px',
                   }}
                 >
-                  <User style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
+                  <Crown style={{ width: '34px', height: '34px', color: '#FFFFFF' }} />
                 </div>
+
                 <span
                   style={{
-                    fontSize: '18px',
+                    fontSize: '20px',
                     fontWeight: 900,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
+                    letterSpacing: '0.12em',
                     color: '#64748B',
+                    display: 'block',
                   }}
                 >
-                  ЮНЫЙ ДИЗАЙНЕР
+                  СЕРТИФИКАТ ВЫДАН
                 </span>
+
                 <span
                   style={{
-                    fontSize: '25px',
+                    fontSize: '52px',
                     fontWeight: 900,
                     color: '#0F172A',
+                    lineHeight: 1.15,
+                    letterSpacing: '-0.01em',
                     marginTop: '8px',
-                    lineHeight: 1.25,
                     wordBreak: 'break-word',
+                    display: 'block',
                   }}
                 >
                   {studentName.trim() || 'Юный дизайнер'}
                 </span>
-              </div>
 
-              {/* 2. Role Card */}
-              <div
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: '32px',
-                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.12)',
-                  border: '2px solid #FFFFFF',
-                  padding: '28px 20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                }}
-              >
                 <div
                   style={{
-                    width: '90px',
-                    height: '90px',
-                    borderRadius: '9999px',
-                    background: '#503CFA',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
-                    marginBottom: '16px',
+                    borderTop: '2px solid #F1F5F9',
+                    paddingTop: '16px',
+                    marginTop: '16px',
+                    width: '100%',
                   }}
                 >
-                  <Shield style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
+                  <span
+                    style={{
+                      fontSize: '23px',
+                      fontWeight: 700,
+                      color: '#475569',
+                      lineHeight: 1.4,
+                      display: 'block',
+                    }}
+                  >
+                    За успешное создание уникального 3D-персонажа для игрового мира Roblox!
+                  </span>
                 </div>
-                <span
-                  style={{
-                    fontSize: '18px',
-                    fontWeight: 900,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    color: '#64748B',
-                  }}
-                >
-                  КЛАСС ГЕРОЯ
-                </span>
-                <span
-                  style={{
-                    fontSize: '25px',
-                    fontWeight: 900,
-                    color: '#0F172A',
-                    marginTop: '8px',
-                    lineHeight: 1.25,
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {roleTitle}
-                </span>
               </div>
 
-              {/* 3. Suit Card */}
+              {/* 2. Compact Suit & Accessory Row */}
               <div
                 style={{
-                  background: '#FFFFFF',
-                  borderRadius: '32px',
-                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.12)',
-                  border: '2px solid #FFFFFF',
-                  padding: '28px 20px',
                   display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
+                  gap: '20px',
+                  width: '100%',
+                  height: '240px',
                 }}
               >
+                {/* Suit Card */}
                 <div
                   style={{
-                    width: '90px',
-                    height: '90px',
-                    borderRadius: '9999px',
-                    background: '#503CFA',
+                    flex: 1,
+                    background: '#FFFFFF',
+                    borderRadius: '28px',
+                    boxShadow: '0 8px 0 #D1D5DB, 0 14px 22px rgba(0, 0, 0, 0.1)',
+                    border: '2px solid #FFFFFF',
+                    padding: '20px 20px',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
-                    marginBottom: '16px',
+                    textAlign: 'center',
                   }}
                 >
-                  <Shirt style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
+                  <div
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '9999px',
+                      background: '#503CFA',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 6px 12px rgba(80, 60, 250, 0.3)',
+                      marginBottom: '10px',
+                    }}
+                  >
+                    <Shirt style={{ width: '32px', height: '32px', color: '#FFFFFF' }} />
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      color: '#64748B',
+                      display: 'block',
+                    }}
+                  >
+                    КОСТЮМ
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '24px',
+                      fontWeight: 800,
+                      color: '#0F172A',
+                      marginTop: '6px',
+                      lineHeight: 1.25,
+                      wordBreak: 'break-word',
+                      display: 'block',
+                    }}
+                  >
+                    {character.appearance?.outfit?.name || 'Базовый костюм'}
+                  </span>
                 </div>
-                <span
-                  style={{
-                    fontSize: '18px',
-                    fontWeight: 900,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    color: '#64748B',
-                  }}
-                >
-                  КОСТЮМ
-                </span>
-                <span
-                  style={{
-                    fontSize: '24px',
-                    fontWeight: 900,
-                    color: '#0F172A',
-                    marginTop: '8px',
-                    lineHeight: 1.25,
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {character.appearance?.outfit?.name || 'Базовый костюм'}
-                </span>
-              </div>
 
-              {/* 4. Accessory Card */}
-              <div
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: '32px',
-                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.12)',
-                  border: '2px solid #FFFFFF',
-                  padding: '28px 20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                }}
-              >
+                {/* Accessory Card */}
                 <div
                   style={{
-                    width: '90px',
-                    height: '90px',
-                    borderRadius: '9999px',
-                    background: '#503CFA',
+                    flex: 1,
+                    background: '#FFFFFF',
+                    borderRadius: '28px',
+                    boxShadow: '0 8px 0 #D1D5DB, 0 14px 22px rgba(0, 0, 0, 0.1)',
+                    border: '2px solid #FFFFFF',
+                    padding: '20px 20px',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
-                    marginBottom: '16px',
+                    textAlign: 'center',
                   }}
                 >
-                  <Glasses style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
+                  <div
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '9999px',
+                      background: '#503CFA',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 6px 12px rgba(80, 60, 250, 0.3)',
+                      marginBottom: '10px',
+                    }}
+                  >
+                    <Glasses style={{ width: '32px', height: '32px', color: '#FFFFFF' }} />
+                  </div>
+                  <span
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      color: '#64748B',
+                      display: 'block',
+                    }}
+                  >
+                    АКСЕССУАР
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '24px',
+                      fontWeight: 800,
+                      color: '#0F172A',
+                      marginTop: '6px',
+                      lineHeight: 1.25,
+                      wordBreak: 'break-word',
+                      display: 'block',
+                    }}
+                  >
+                    {character.appearance?.accessory?.name || 'Без аксессуара'}
+                  </span>
                 </div>
-                <span
-                  style={{
-                    fontSize: '18px',
-                    fontWeight: 900,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    color: '#64748B',
-                  }}
-                >
-                  АКСЕССУАР
-                </span>
-                <span
-                  style={{
-                    fontSize: '24px',
-                    fontWeight: 900,
-                    color: '#0F172A',
-                    marginTop: '8px',
-                    lineHeight: 1.25,
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {character.appearance?.accessory?.name || 'Без аксессуара'}
-                </span>
               </div>
             </div>
 
@@ -646,13 +639,13 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                 left: '205px',
                 top: '1480px',
                 width: '1382px',
-                height: '370px',
+                height: '350px',
                 zIndex: 10,
                 background: '#FFFFFF',
                 borderRadius: '36px',
                 boxShadow: '0 12px 0 #D1D5DB, 0 18px 30px rgba(0, 0, 0, 0.12)',
                 border: '2px solid #FFFFFF',
-                padding: '36px 44px',
+                padding: '26px 44px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -678,7 +671,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '24px',
+                  gap: '20px',
                 }}
               >
                 {skillsData.map((skill, index) => (
@@ -688,16 +681,16 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                       background: 'rgba(248, 250, 252, 0.95)',
                       borderRadius: '24px',
                       border: '2px solid #E2E8F0',
-                      padding: '20px 24px',
+                      padding: '14px 22px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '20px',
+                      gap: '18px',
                     }}
                   >
                     <div
                       style={{
-                        width: '64px',
-                        height: '64px',
+                        width: '60px',
+                        height: '60px',
                         borderRadius: '9999px',
                         background: '#503CFA',
                         display: 'flex',
@@ -707,7 +700,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                         boxShadow: '0 4px 10px rgba(80, 60, 250, 0.3)',
                       }}
                     >
-                      <skill.Icon style={{ width: '32px', height: '32px', color: '#FFFFFF' }} />
+                      <skill.Icon style={{ width: '30px', height: '30px', color: '#FFFFFF' }} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
@@ -715,13 +708,13 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          marginBottom: '10px',
+                          marginBottom: '8px',
                         }}
                       >
                         <span
                           style={{
-                            fontSize: '22px',
-                            fontWeight: 900,
+                            fontSize: '25px',
+                            fontWeight: 800,
                             color: '#0F172A',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -732,7 +725,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                         </span>
                         <span
                           style={{
-                            fontSize: '20px',
+                            fontSize: '24px',
                             fontWeight: 900,
                             color: '#503CFA',
                           }}
@@ -765,27 +758,27 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
             </div>
 
             {/* Footer Container (Date, Print, Signature):
-                position: absolute; left: 205px; top: 2050px; width: 1382px; */}
+                position: absolute; left: 205px; top: 2045px; width: 1382px; height: 260px; */}
             <div
               style={{
                 position: 'absolute',
                 left: '205px',
-                top: '2050px',
+                top: '2045px',
                 width: '1382px',
-                height: '240px',
+                height: '260px',
                 zIndex: 10,
                 background: '#FFFFFF',
                 borderRadius: '36px',
                 boxShadow: '0 12px 0 #D1D5DB, 0 18px 30px rgba(0, 0, 0, 0.12)',
                 border: '2px solid #FFFFFF',
-                padding: '24px 50px',
+                padding: '20px 48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}
             >
               {/* Left: ONLY Issue Date */}
-              <div style={{ textAlign: 'left', minWidth: '320px' }}>
+              <div style={{ textAlign: 'left', minWidth: '280px', flex: '1 1 0' }}>
                 <span
                   style={{
                     fontSize: '18px',
@@ -811,17 +804,28 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                 </span>
               </div>
 
-              {/* Center: Official School Seal (print.png) */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {/* Center: Official School Seal (print.png) enlarged by 50-70% */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  margin: '0 24px',
+                  overflow: 'visible',
+                }}
+              >
                 <img
                   src={printImg || '/print.png'}
                   alt="Печать школы"
                   crossOrigin="anonymous"
                   loading="eager"
                   style={{
-                    width: '200px',
-                    height: '200px',
+                    width: '240px',
+                    height: '240px',
                     objectFit: 'contain',
+                    transform: 'scale(1.35)',
+                    transformOrigin: 'center',
                     filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.18))',
                     userSelect: 'none',
                   }}
@@ -835,7 +839,8 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                   flexDirection: 'column',
                   alignItems: 'flex-end',
                   textAlign: 'right',
-                  minWidth: '320px',
+                  minWidth: '280px',
+                  flex: '1 1 0',
                   gap: '8px',
                 }}
               >
