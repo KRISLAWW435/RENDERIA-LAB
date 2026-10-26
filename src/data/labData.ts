@@ -1,73 +1,135 @@
 import { RoleOption, AppearanceState, RoleId, VisualStyleId } from '../types/avatar';
 
-// Real generated assets from project
+import labBgImg from '../assets/images/labbag.webp';
+import pixel1Img from '../assets/pix/pixel1.webp';
+import robloxSampleHeroImg from '../assets/images/roblox_sample_hero_1792768750990.jpg';
+import roleCosmicExplorerImg from '../assets/images/role_cosmic_explorer_1792773201896.jpg';
+import roleCyberNinjaImg from '../assets/images/role_cyber_ninja_1792773216031.jpg';
+import roleNatureGuardianImg from '../assets/images/role_nature_guardian_1792773231863.jpg';
+import roleFantasyTravelerImg from '../assets/images/role_fantasy_traveler_1792773247734.jpg';
+import suitTechSpacesuitImg from '../assets/images/suit_tech_spacesuit_1792783141357.jpg';
+import suitCyberArmorImg from '../assets/images/suit_cyber_armor_1792783142647.jpg';
+import suitHoodieTechImg from '../assets/images/suit_hoodie_tech_1792783143309.jpg';
+import suitMagicTunicImg from '../assets/images/suit_magic_tunic_1792783143427.jpg';
+import suitCyberDressImg from '../assets/images/suit_cyber_dress_1792783730282.jpg';
+import suitPilotSuitImg from '../assets/images/suit_pilot_suit_1792783689073.jpg';
+import accHoloVisorImg from '../assets/images/acc_holo_visor_1792783143024.jpg';
+import accTwinJetpackImg from '../assets/images/acc_twin_jetpack_1792783145083.jpg';
+import accDroneSphereImg from '../assets/images/acc_drone_sphere_1792783145273.jpg';
+import accEnergyBladesImg from '../assets/images/acc_energy_blades_1792783146549.jpg';
+import accCyberWingsImg from '../assets/images/acc_cyber_wings_1792783688879.jpg';
+import starGlassesImg from '../assets/images/star_glasses_1792999476154.jpg';
+import heartGlassesImg from '../assets/images/heart_glasses_1792999492193.jpg';
+import neonCrownImg from '../assets/images/neon_crown_1792999507768.jpg';
+import propellerHatImg from '../assets/images/propeller_hat_1792999521493.jpg';
+import cyberHeadphonesImg from '../assets/images/cyber_headphones_antenna_1793000367539.jpg';
+import wizardHatImg from '../assets/images/wizard_hat_1792999549301.jpg';
+import accMagicStaffImg from '../assets/images/acc_magic_staff_1792783689708.jpg';
+import gearGlowSneakersImg from '../assets/images/gear_glow_sneakers_1792783146398.jpg';
+import gearStarBadgeImg from '../assets/images/gear_star_badge_1792783146561.jpg';
+import gearHoloMapImg from '../assets/images/gear_holo_map_1792783147508.jpg';
+import gearPlasmaCapeImg from '../assets/images/gear_plasma_cape_1792783147414.jpg';
+import gearCyberCrownImg from '../assets/images/gear_cyber_crown_1792783691084.jpg';
+import gearMagicPetImg from '../assets/images/gear_magic_pet_1792783690749.jpg';
+import faceConfidentSmileImg from '../assets/images/face_confident_smile_1792861734760.jpg';
+import faceSmartLookImg from '../assets/images/face_smart_look_1792861735348.jpg';
+import facePlayfulWinkImg from '../assets/images/face_playful_wink_1792861735426.jpg';
+import faceExcitedWonderImg from '../assets/images/face_excited_wonder_1792861752905.jpg';
+import faceCuteSmileImg from '../assets/images/face_cute_smile_1792861752651.jpg';
+import faceCoolHeroImg from '../assets/images/face_cool_hero_1792861753690.jpg';
+import traitCheerfulImg from '../assets/images/trait_cheerful_1792863801369.jpg';
+import traitSeriousImg from '../assets/images/trait_serious_1792863895522.jpg';
+import traitSlyImg from '../assets/images/trait_sly_1792863910086.jpg';
+import traitVillainImg from '../assets/images/trait_villain_1792863925553.jpg';
+import traitSmartImg from '../assets/images/trait_smart_1792863940275.jpg';
+import traitGrumpyImg from '../assets/images/trait_grumpy_1792863955852.jpg';
+import ninjaFlat2dImg from '../assets/images/ninja_flat_2d_1792913625393.jpg';
+import ninja2dFireImg from '../assets/images/ninja_two_d_fire_clean_1792915072679.jpg';
+import ninja3dStaticImg from '../assets/images/roblox_ninja_static_1792917005423.jpg';
+import ninja3dFireBusyImg from '../assets/images/roblox_ninja_fire_busy_1792917016875.jpg';
+import ninja3dFireWhiteImg from '../assets/images/roblox_ninja_fire_white_1792917039773.jpg';
+import accCyberHelmetImg from '../assets/images/acc_cyber_helmet_1792915560330.jpg';
+import poseTPoseImg from '../assets/images/pose_tpose_1792915571532.jpg';
+import poseBattleImg from '../assets/images/pose_battle_1792915583739.jpg';
+import poseHandsHipsImg from '../assets/images/pose_hands_hips_1792915595620.jpg';
+import poseVictoryImg from '../assets/images/pose_victory_1792915606545.jpg';
+import poseCrossedArmsImg from '../assets/images/pose_crossed_arms_1792915616529.jpg';
+import poseJumpImg from '../assets/images/pose_jump_1792915627631.jpg';
+import certificateBgImg from '../assets/images/certificate_bg_1793000138165.jpg';
+import certGameBgImg from '../assets/images/cert_game_bg_1793001214533.jpg';
+import certificatePngImg from '../assets/images/certificate.png';
+import goldSealImg from '../assets/images/gold_seal_1793000149791.jpg';
+import printSealImg from '../assets/images/print.png';
+import signaturePngImg from '../assets/images/signature.png';
+
+// Real generated assets from project (bundled via Vite ES module imports)
 export const ASSETS = {
-  labBg: '/src/assets/images/labbag.webp',
-  pixelHappy: '/src/assets/pix/pixel1.webp',
-  pixelThinking: '/src/assets/pix/pixel1.webp',
-  pixelCelebrate: '/src/assets/pix/pixel1.webp',
-  pixel1: '/src/assets/pix/pixel1.webp',
-  robloxSampleHero: '/src/assets/images/roblox_sample_hero_1792768750990.jpg',
-  roleCosmicExplorer: '/src/assets/images/role_cosmic_explorer_1792773201896.jpg',
-  roleCyberNinja: '/src/assets/images/role_cyber_ninja_1792773216031.jpg',
-  roleNatureGuardian: '/src/assets/images/role_nature_guardian_1792773231863.jpg',
-  roleFantasyTraveler: '/src/assets/images/role_fantasy_traveler_1792773247734.jpg',
-  suitTechSpacesuit: '/src/assets/images/suit_tech_spacesuit_1792783141357.jpg',
-  suitCyberArmor: '/src/assets/images/suit_cyber_armor_1792783142647.jpg',
-  suitHoodieTech: '/src/assets/images/suit_hoodie_tech_1792783143309.jpg',
-  suitMagicTunic: '/src/assets/images/suit_magic_tunic_1792783143427.jpg',
-  suitCyberDress: '/src/assets/images/suit_cyber_dress_1792783730282.jpg',
-  suitPilotSuit: '/src/assets/images/suit_pilot_suit_1792783689073.jpg',
-  accHoloVisor: '/src/assets/images/acc_holo_visor_1792783143024.jpg',
-  accTwinJetpack: '/src/assets/images/acc_twin_jetpack_1792783145083.jpg',
-  accDroneSphere: '/src/assets/images/acc_drone_sphere_1792783145273.jpg',
-  accEnergyBlades: '/src/assets/images/acc_energy_blades_1792783146549.jpg',
-  accCyberWings: '/src/assets/images/acc_cyber_wings_1792783688879.jpg',
-  starGlasses: '/src/assets/images/star_glasses_1792999476154.jpg',
-  heartGlasses: '/src/assets/images/heart_glasses_1792999492193.jpg',
-  neonCrown: '/src/assets/images/neon_crown_1792999507768.jpg',
-  propellerHat: '/src/assets/images/propeller_hat_1792999521493.jpg',
-  cyberHeadphones: '/src/assets/images/cyber_headphones_antenna_1793000367539.jpg',
-  wizardHat: '/src/assets/images/wizard_hat_1792999549301.jpg',
-  accMagicStaff: '/src/assets/images/acc_magic_staff_1792783689708.jpg',
-  gearGlowSneakers: '/src/assets/images/gear_glow_sneakers_1792783146398.jpg',
-  gearStarBadge: '/src/assets/images/gear_star_badge_1792783146561.jpg',
-  gearHoloMap: '/src/assets/images/gear_holo_map_1792783147508.jpg',
-  gearPlasmaCape: '/src/assets/images/gear_plasma_cape_1792783147414.jpg',
-  gearCyberCrown: '/src/assets/images/gear_cyber_crown_1792783691084.jpg',
-  gearMagicPet: '/src/assets/images/gear_magic_pet_1792783690749.jpg',
-  faceConfidentSmile: '/src/assets/images/face_confident_smile_1792861734760.jpg',
-  faceSmartLook: '/src/assets/images/face_smart_look_1792861735348.jpg',
-  facePlayfulWink: '/src/assets/images/face_playful_wink_1792861735426.jpg',
-  faceExcitedWonder: '/src/assets/images/face_excited_wonder_1792861752905.jpg',
-  faceCuteSmile: '/src/assets/images/face_cute_smile_1792861752651.jpg',
-  faceCoolHero: '/src/assets/images/face_cool_hero_1792861753690.jpg',
-  traitCheerful: '/src/assets/images/trait_cheerful_1792863801369.jpg',
-  traitSerious: '/src/assets/images/trait_serious_1792863895522.jpg',
-  traitSly: '/src/assets/images/trait_sly_1792863910086.jpg',
-  traitVillain: '/src/assets/images/trait_villain_1792863925553.jpg',
-  traitSmart: '/src/assets/images/trait_smart_1792863940275.jpg',
-  traitGrumpy: '/src/assets/images/trait_grumpy_1792863955852.jpg',
-  ninjaFlat2d: '/src/assets/images/ninja_flat_2d_1792913625393.jpg',
-  ninja2dFire: '/src/assets/images/ninja_two_d_fire_clean_1792915072679.jpg',
-  ninja3dStatic: '/src/assets/images/roblox_ninja_static_1792917005423.jpg',
-  ninja3dFireBusy: '/src/assets/images/roblox_ninja_fire_busy_1792917016875.jpg',
-  ninja3dFireWhite: '/src/assets/images/roblox_ninja_fire_white_1792917039773.jpg',
-  ninja3dBlockyFire: '/src/assets/images/roblox_ninja_fire_busy_1792917016875.jpg',
-  ninja3dTPose: '/src/assets/images/roblox_ninja_fire_white_1792917039773.jpg',
-  accCyberHelmet: '/src/assets/images/acc_cyber_helmet_1792915560330.jpg',
-  poseTPose: '/src/assets/images/pose_tpose_1792915571532.jpg',
-  poseBattle: '/src/assets/images/pose_battle_1792915583739.jpg',
-  poseHandsHips: '/src/assets/images/pose_hands_hips_1792915595620.jpg',
-  poseVictory: '/src/assets/images/pose_victory_1792915606545.jpg',
-  poseCrossedArms: '/src/assets/images/pose_crossed_arms_1792915616529.jpg',
-  poseJump: '/src/assets/images/pose_jump_1792915627631.jpg',
-  certificateBg: '/src/assets/images/certificate_bg_1793000138165.jpg',
-  certGameBg: '/src/assets/images/cert_game_bg_1793001214533.jpg',
-  certificatePng: '/src/assets/images/certificate.png',
-  goldSeal: '/src/assets/images/gold_seal_1793000149791.jpg',
-  printSeal: '/src/assets/images/print.png',
-  signatureImg: '/src/assets/images/signature.png',
+  labBg: labBgImg,
+  pixelHappy: pixel1Img,
+  pixelThinking: pixel1Img,
+  pixelCelebrate: pixel1Img,
+  pixel1: pixel1Img,
+  robloxSampleHero: robloxSampleHeroImg,
+  roleCosmicExplorer: roleCosmicExplorerImg,
+  roleCyberNinja: roleCyberNinjaImg,
+  roleNatureGuardian: roleNatureGuardianImg,
+  roleFantasyTraveler: roleFantasyTravelerImg,
+  suitTechSpacesuit: suitTechSpacesuitImg,
+  suitCyberArmor: suitCyberArmorImg,
+  suitHoodieTech: suitHoodieTechImg,
+  suitMagicTunic: suitMagicTunicImg,
+  suitCyberDress: suitCyberDressImg,
+  suitPilotSuit: suitPilotSuitImg,
+  accHoloVisor: accHoloVisorImg,
+  accTwinJetpack: accTwinJetpackImg,
+  accDroneSphere: accDroneSphereImg,
+  accEnergyBlades: accEnergyBladesImg,
+  accCyberWings: accCyberWingsImg,
+  starGlasses: starGlassesImg,
+  heartGlasses: heartGlassesImg,
+  neonCrown: neonCrownImg,
+  propellerHat: propellerHatImg,
+  cyberHeadphones: cyberHeadphonesImg,
+  wizardHat: wizardHatImg,
+  accMagicStaff: accMagicStaffImg,
+  gearGlowSneakers: gearGlowSneakersImg,
+  gearStarBadge: gearStarBadgeImg,
+  gearHoloMap: gearHoloMapImg,
+  gearPlasmaCape: gearPlasmaCapeImg,
+  gearCyberCrown: gearCyberCrownImg,
+  gearMagicPet: gearMagicPetImg,
+  faceConfidentSmile: faceConfidentSmileImg,
+  faceSmartLook: faceSmartLookImg,
+  facePlayfulWink: facePlayfulWinkImg,
+  faceExcitedWonder: faceExcitedWonderImg,
+  faceCuteSmile: faceCuteSmileImg,
+  faceCoolHero: faceCoolHeroImg,
+  traitCheerful: traitCheerfulImg,
+  traitSerious: traitSeriousImg,
+  traitSly: traitSlyImg,
+  traitVillain: traitVillainImg,
+  traitSmart: traitSmartImg,
+  traitGrumpy: traitGrumpyImg,
+  ninjaFlat2d: ninjaFlat2dImg,
+  ninja2dFire: ninja2dFireImg,
+  ninja3dStatic: ninja3dStaticImg,
+  ninja3dFireBusy: ninja3dFireBusyImg,
+  ninja3dFireWhite: ninja3dFireWhiteImg,
+  ninja3dBlockyFire: ninja3dFireBusyImg,
+  ninja3dTPose: ninja3dFireWhiteImg,
+  accCyberHelmet: accCyberHelmetImg,
+  poseTPose: poseTPoseImg,
+  poseBattle: poseBattleImg,
+  poseHandsHips: poseHandsHipsImg,
+  poseVictory: poseVictoryImg,
+  poseCrossedArms: poseCrossedArmsImg,
+  poseJump: poseJumpImg,
+  certificateBg: certificateBgImg,
+  certGameBg: certGameBgImg,
+  certificatePng: certificatePngImg,
+  goldSeal: goldSealImg,
+  printSeal: printSealImg,
+  signatureImg: signaturePngImg,
 };
 
 // External AI Image Generator Services (Single configuration point)

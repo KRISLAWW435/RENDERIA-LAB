@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { CharacterData, AppearanceState } from '../types/avatar';
-import { sanitizePromptRu } from '../data/labData';
+import { sanitizePromptRu, OUTFITS, ACCESSORIES, EXPRESSIONS, POSES } from '../data/labData';
 
 export const EMPTY_APPEARANCE: AppearanceState = {
   colorPalette: null,
@@ -64,6 +64,24 @@ export const CharacterProvider: React.FC<{ children: ReactNode }> = ({ children 
           // Migrate any legacy accessory name
           if (char.appearance?.accessory?.name && ACCESSORY_NAME_MIGRATION[char.appearance.accessory.name]) {
             char.appearance.accessory.name = ACCESSORY_NAME_MIGRATION[char.appearance.accessory.name];
+          }
+
+          // Re-sync bundled image paths in case localStorage had stale '/src/assets/...' URLs
+          if (char.appearance?.outfit?.id) {
+            const matchedOutfit = OUTFITS.find((o) => o.id === char.appearance.outfit.id);
+            if (matchedOutfit) char.appearance.outfit.image = matchedOutfit.image;
+          }
+          if (char.appearance?.accessory?.id) {
+            const matchedAcc = ACCESSORIES.find((a) => a.id === char.appearance.accessory.id);
+            if (matchedAcc) char.appearance.accessory.image = matchedAcc.image;
+          }
+          if (char.appearance?.expression?.id) {
+            const matchedExpr = EXPRESSIONS.find((e) => e.id === char.appearance.expression.id);
+            if (matchedExpr) char.appearance.expression.image = matchedExpr.image;
+          }
+          if (char.appearance?.pose?.id) {
+            const matchedPose = POSES.find((p) => p.id === char.appearance.pose.id);
+            if (matchedPose) char.appearance.pose.image = matchedPose.image;
           }
 
           return {
