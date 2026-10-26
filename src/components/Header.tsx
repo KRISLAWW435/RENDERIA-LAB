@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Sparkles, HelpCircle, RotateCcw, Download } from 'lucide-react';
+import { Volume2, VolumeX, Sparkles, RotateCcw, Maximize, Minimize } from 'lucide-react';
 import { getMuted, toggleMusic, subscribeSoundState, playClickSound, isMusicPlaying } from '../services/soundEffects';
 import { StageId } from '../types/avatar';
 
@@ -18,6 +18,9 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(isMusicPlaying());
   const [isMuted, setIsMuted] = useState<boolean>(getMuted());
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
+    return typeof document !== 'undefined' && Boolean(document.fullscreenElement);
+  });
 
   useEffect(() => {
     const unsubscribe = subscribeSoundState((muted, playing) => {
@@ -27,40 +30,54 @@ export const Header: React.FC<HeaderProps> = ({
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
   const handleToggleSound = () => {
     playClickSound();
     toggleMusic();
+  };
+
+  const handleToggleFullscreen = async () => {
+    playClickSound();
+    try {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        } else if ((document.documentElement as any).webkitRequestFullscreen) {
+          await (document.documentElement as any).webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen request failed:', err);
+    }
   };
 
   const handleLogoClick = () => {
     playClickSound();
     onGoHome();
   };
-
-  const getStageNumber = (stage: StageId): number => {
-    switch (stage) {
-      case 'intro':
-        return 0;
-      case 'stage1_concept':
-        return 1;
-      case 'stage2_appearance':
-        return 2;
-      case 'stage3_training':
-        return 3;
-      case 'stage4_prompt':
-        return 4;
-      case 'stage5_image':
-        return 5;
-      case 'stage6_3d':
-        return 6;
-      case 'victory':
-        return 6;
-      default:
-        return 1;
-    }
-  };
-
-  const stageNum = getStageNumber(currentStage);
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-slate-100 shadow-xs">
@@ -118,15 +135,34 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
+          {/* Fullscreen Toggle */}
+          <button
+            onClick={handleToggleFullscreen}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all border cursor-pointer ${
+              isFullscreen
+                ? 'bg-[#B9F24D]/25 hover:bg-[#B9F24D]/40 text-[#252735] border-[#252735]'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
+            }`}
+            title={isFullscreen ? 'Выйти из полноэкранного режима' : 'На весь экран'}
+            aria-label={isFullscreen ? 'Выйти из полноэкранного режима' : 'На весь экран'}
+          >
+            {isFullscreen ? (
+              <Minimize className="w-4 h-4 text-[#252735]" />
+            ) : (
+              <Maximize className="w-4 h-4 text-[#252735]" />
+            )}
+          </button>
+
           {/* Reset progress button */}
           <button
             onClick={() => {
-              if (window.confirm('Сбросить весь прогресс и начать заново?')) {
+              if (window.confirm('Сбросить весь прогресс и начать заново? Это полностью очистит данные героя.')) {
+                playClickSound();
                 onReset();
               }
             }}
             className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 flex items-center justify-center transition-colors border border-slate-200 cursor-pointer"
-            title="Начать сначала"
+            title="Начать сначала (Сбросить прогресс)"
             aria-label="Начать сначала"
           >
             <RotateCcw className="w-3.5 h-3.5" />

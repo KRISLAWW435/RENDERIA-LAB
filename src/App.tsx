@@ -64,11 +64,71 @@ const INITIAL_BADGES: BadgeItem[] = [
   },
 ];
 
+const STAGE_TO_HASH: Record<StageId, string> = {
+  intro: '#/',
+  stage1_concept: '#/stage-1',
+  stage2_appearance: '#/stage-2',
+  stage3_training: '#/stage-3',
+  stage4_prompt: '#/stage-4',
+  stage5_image: '#/stage-5',
+  stage6_3d: '#/stage-6',
+  victory: '#/victory',
+};
+
+const HASH_TO_STAGE: Record<string, StageId> = {
+  '': 'intro',
+  '#': 'intro',
+  '#/': 'intro',
+  '#/stage-1': 'stage1_concept',
+  '#stage-1': 'stage1_concept',
+  '#/stage-2': 'stage2_appearance',
+  '#stage-2': 'stage2_appearance',
+  '#/stage-3': 'stage3_training',
+  '#stage-3': 'stage3_training',
+  '#/stage-4': 'stage4_prompt',
+  '#stage-4': 'stage4_prompt',
+  '#/stage-5': 'stage5_image',
+  '#stage-5': 'stage5_image',
+  '#/stage-6': 'stage6_3d',
+  '#stage-6': 'stage6_3d',
+  '#/victory': 'victory',
+  '#victory': 'victory',
+};
+
 function AppContent() {
-  const [currentStage, setCurrentStage] = useState<StageId>('intro');
+  const [currentStage, setCurrentStage] = useState<StageId>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.toLowerCase();
+      if (hash && HASH_TO_STAGE[hash]) {
+        return HASH_TO_STAGE[hash];
+      }
+    }
+    return 'intro';
+  });
+
   const { character, updateCharacter, resetCharacter } = useCharacter();
   const [badges, setBadges] = useState<BadgeItem[]>(INITIAL_BADGES);
   const [completedStages, setCompletedStages] = useState<Record<string, boolean>>({});
+
+  // Sync hash routing changes (Back/Forward or direct hash entry)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (HASH_TO_STAGE[hash] && HASH_TO_STAGE[hash] !== currentStage) {
+        setCurrentStage(HASH_TO_STAGE[hash]);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [currentStage]);
+
+  // Sync stage to URL hash when currentStage changes
+  useEffect(() => {
+    const targetHash = STAGE_TO_HASH[currentStage] || '#/';
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+  }, [currentStage]);
 
   // Load badges and stage from localStorage if available
   useEffect(() => {
@@ -76,7 +136,9 @@ function AppContent() {
       const saved = localStorage.getItem('renderia_lab_session');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.currentStage) setCurrentStage(parsed.currentStage);
+        if (parsed.currentStage && !window.location.hash) {
+          setCurrentStage(parsed.currentStage);
+        }
         if (parsed.badges) setBadges(parsed.badges);
         if (parsed.completedStages) setCompletedStages(parsed.completedStages);
       }
@@ -158,16 +220,18 @@ function AppContent() {
   };
 
   const handleReset = () => {
-    resetCharacter();
-    setBadges(INITIAL_BADGES);
-    setCompletedStages({});
-    setCurrentStage('intro');
     try {
-      localStorage.removeItem('renderia_lab_session');
+      resetCharacter();
+      setBadges(INITIAL_BADGES);
+      setCompletedStages({});
+      setCurrentStage('intro');
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.hash = '';
+      window.location.replace(window.location.pathname);
     } catch {
-      // Ignore
+      window.location.reload();
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const totalXP = badges

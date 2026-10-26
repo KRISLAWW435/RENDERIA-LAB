@@ -26,7 +26,59 @@ interface Stage2AppearanceProps {
   onPrev: () => void;
 }
 
-type AppearanceTab = 'colors' | 'outfit' | 'accessory' | 'expression' | 'pose';
+type WizardStep = 1 | 2 | 3 | 4 | 5;
+
+interface WizardStepInfo {
+  step: WizardStep;
+  category: string;
+  title: string;
+  subtitle: string;
+  nextBtnText: string;
+  prevBtnText: string;
+}
+
+const WIZARD_STEPS: Record<WizardStep, WizardStepInfo> = {
+  1: {
+    step: 1,
+    category: 'Палитра',
+    title: 'Цветовая палитра костюма',
+    subtitle: 'Выбери готовое сочетание или создай свои цвета',
+    nextBtnText: 'Далее: Костюм',
+    prevBtnText: 'Назад: Концепция',
+  },
+  2: {
+    step: 2,
+    category: 'Костюм',
+    title: 'Одежда и костюм',
+    subtitle: 'Выбери силуэт и стиль костюма',
+    nextBtnText: 'Далее: Аксессуар',
+    prevBtnText: 'Назад: Палитра',
+  },
+  3: {
+    step: 3,
+    category: 'Аксессуар',
+    title: 'Аксессуар и экипировка',
+    subtitle: 'Выбери визитную карточку героя',
+    nextBtnText: 'Далее: Характер',
+    prevBtnText: 'Назад: Костюм',
+  },
+  4: {
+    step: 4,
+    category: 'Характер',
+    title: 'Характер и эмоция героя',
+    subtitle: 'Выбери черту личности в стиле The Sims',
+    nextBtnText: 'Далее: Поза',
+    prevBtnText: 'Назад: Аксессуар',
+  },
+  5: {
+    step: 5,
+    category: 'Поза',
+    title: 'Поза персонажа для 3D',
+    subtitle: 'Выбери стойку персонажа для моделирования',
+    nextBtnText: 'Далее: Прокачать промпт',
+    prevBtnText: 'Назад: Характер',
+  },
+};
 
 export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
   character,
@@ -34,7 +86,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
   onNext,
   onPrev,
 }) => {
-  const [activeTab, setActiveTab] = useState<AppearanceTab>('colors');
+  const [wizardStep, setWizardStep] = useState<WizardStep>(1);
   const [appearance, setAppearance] = useState<AppearanceState>(character.appearance);
   const [justSelectedId, setJustSelectedId] = useState<string | null>(null);
 
@@ -185,48 +237,64 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
     onUpdate({ appearance: updated });
   };
 
-  const handleNext = () => {
-    playSuccessSound();
-    onNext();
+  const handleStepPrev = () => {
+    playClickSound();
+    if (wizardStep > 1) {
+      setWizardStep((prev) => (prev - 1) as WizardStep);
+      window.scrollTo({ top: 100, behavior: 'smooth' });
+    } else {
+      onPrev();
+    }
   };
 
-  // Dynamic educational mascot tips per tab
-  const getTabMascotContent = () => {
-    switch (activeTab) {
-      case 'colors':
+  const handleStepNext = () => {
+    playClickSound();
+    if (wizardStep < 5) {
+      setWizardStep((prev) => (prev + 1) as WizardStep);
+      window.scrollTo({ top: 100, behavior: 'smooth' });
+    } else {
+      playSuccessSound();
+      onNext();
+    }
+  };
+
+  // Dynamic educational mascot tips per wizard step
+  const getWizardMascotContent = () => {
+    switch (wizardStep) {
+      case 1:
         return {
           speech:
-            'Цвета задают характер героя! Салатовый заряжает энергией, а глубокий графит окутывает тайной!',
+            'Шаг 1 из 5: Цвета задают характер героя! Салатовый заряжает энергией, а глубокий графит окутывает тайной!',
           tip: 'Выбирай готовую палитру или настрой свои любимые цвета пипеткой!',
         };
-      case 'outfit':
+      case 2:
         return {
           speech:
-            'Выбирай силуэт! В 3D-моделировании важно, чтобы форма костюма была выразительной и узнаваемой издалека!',
+            'Шаг 2 из 5: Выбирай силуэт! В 3D-моделировании важно, чтобы форма костюма была выразительной и узнаваемой издалека!',
           tip: 'Выбери один из 6 крутых костюмов или назови свой собственный в поле «Свой вариант»!',
         };
-      case 'accessory':
+      case 3:
         return {
           speech:
-            'Аксессуар — визитная карточка персонажа! Звездные очки, реактивный джетпак или неоновая корона сразу приковывают внимание!',
+            'Шаг 3 из 5: Аксессуар — визитная карточка персонажа! Звездные очки, реактивный джетпак или неоновая корона сразу приковывают внимание!',
           tip: 'Выбирай из 10 ярких предметов или придумай свой в поле «Свой вариант»!',
         };
-      case 'expression':
+      case 4:
         return {
           speech:
-            'Характер и эмоция оживляют 3D-героя! Выбирай черту личности, как в The Sims — от открытого весельчака до хитрого стратега!',
+            'Шаг 4 из 5: Характер и эмоция оживляют 3D-героя! Выбирай черту личности, как в The Sims — от открытого весельчака до хитрого стратега!',
           tip: 'Каждая черта лица отражает внутренний мир персонажа в едином стиле нашего героя!',
         };
-      case 'pose':
+      case 5:
         return {
           speech:
-            'Поза задает динамику и характер героя! Т-поза идеальна для 3D-моделирования, а боевая стойка добавит драйва!',
+            'Шаг 5 из 5: Поза задает динамику и характер героя! Т-поза идеальна для 3D-моделирования, а боевая стойка добавит драйва!',
           tip: 'Выбери одну из 6 готовых поз для 3D или впиши свою уникальную стойку!',
         };
     }
   };
 
-  const currentMascot = getTabMascotContent();
+  const currentMascot = getWizardMascotContent();
 
   return (
     <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6">
@@ -242,90 +310,68 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
       {/* Main Dress-up Workshop Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Side: Category Navigator & Illustrated Options (7 cols) */}
+        {/* Left Side: Step-by-Step Wizard Navigator & Category Content (7 cols) */}
         <div className="lg:col-span-7 space-y-4">
-          {/* Category Tabs: Палитра, Костюм, Аксессуар, Характер, Поза */}
-          <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-2xl overflow-x-auto border border-slate-200">
-            <button
-              onClick={() => {
-                playClickSound();
-                setActiveTab('colors');
-              }}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === 'colors'
-                  ? 'bg-white text-[#252735] shadow-xs'
-                  : 'text-slate-600 hover:text-[#252735]'
-              }`}
-            >
-              <Palette className="w-4 h-4 text-emerald-500" />
-              <span>Палитра</span>
-            </button>
+          {/* Step Progress Indicator (Wizard Bar) */}
+          <div className="bg-white border-2 border-slate-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs font-black uppercase tracking-wider bg-[#B9F24D] text-[#252735] px-3 py-1 rounded-full border border-[#252735] shadow-2xs">
+                  Шаг {wizardStep} из 5
+                </span>
+                <span className="font-display font-black text-base sm:text-lg text-[#252735]">
+                  {WIZARD_STEPS[wizardStep].category}: {WIZARD_STEPS[wizardStep].title}
+                </span>
+              </div>
+              <span className="text-xs font-bold text-slate-500">
+                {wizardStep < 5
+                  ? `Следующий шаг: ${WIZARD_STEPS[(wizardStep + 1) as WizardStep].category}`
+                  : 'Финальный шаг этапа'}
+              </span>
+            </div>
 
-            <button
-              onClick={() => {
-                playClickSound();
-                setActiveTab('outfit');
-              }}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === 'outfit'
-                  ? 'bg-white text-[#252735] shadow-xs'
-                  : 'text-slate-600 hover:text-[#252735]'
-              }`}
-            >
-              <Shirt className="w-4 h-4 text-sky-500" />
-              <span>Костюм</span>
-            </button>
+            {/* Visual Step Progress Track */}
+            <div className="space-y-2">
+              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
+                <div
+                  className="bg-[#B9F24D] h-full transition-all duration-300 border-r-2 border-[#252735]"
+                  style={{ width: `${(wizardStep / 5) * 100}%` }}
+                />
+              </div>
 
-            <button
-              onClick={() => {
-                playClickSound();
-                setActiveTab('accessory');
-              }}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === 'accessory'
-                  ? 'bg-white text-[#252735] shadow-xs'
-                  : 'text-slate-600 hover:text-[#252735]'
-              }`}
-            >
-              <Shield className="w-4 h-4 text-amber-500" />
-              <span>Аксессуар</span>
-            </button>
-
-            <button
-              onClick={() => {
-                playClickSound();
-                setActiveTab('expression');
-              }}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === 'expression'
-                  ? 'bg-white text-[#252735] shadow-xs'
-                  : 'text-slate-600 hover:text-[#252735]'
-              }`}
-            >
-              <UserRound className="w-4 h-4 text-indigo-500" />
-              <span>Характер</span>
-            </button>
-
-            <button
-              onClick={() => {
-                playClickSound();
-                setActiveTab('pose');
-              }}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === 'pose'
-                  ? 'bg-white text-[#252735] shadow-xs'
-                  : 'text-slate-600 hover:text-[#252735]'
-              }`}
-            >
-              <Activity className="w-4 h-4 text-purple-500" />
-              <span>Поза</span>
-            </button>
+              <div className="grid grid-cols-5 gap-1.5 text-center">
+                {([1, 2, 3, 4, 5] as WizardStep[]).map((stepNum) => {
+                  const isCurrent = wizardStep === stepNum;
+                  const isDone = wizardStep > stepNum;
+                  return (
+                    <button
+                      key={stepNum}
+                      type="button"
+                      onClick={() => {
+                        playClickSound();
+                        setWizardStep(stepNum);
+                      }}
+                      className={`text-[11px] font-bold py-1 px-1.5 rounded-lg border transition-all cursor-pointer truncate ${
+                        isCurrent
+                          ? 'bg-[#252735] text-[#B9F24D] border-[#252735] font-black shadow-xs'
+                          : isDone
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                          : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
+                      }`}
+                      title={`Шаг ${stepNum}: ${WIZARD_STEPS[stepNum].category}`}
+                    >
+                      {isDone ? '✓ ' : `${stepNum}. `}{WIZARD_STEPS[stepNum].category}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
-          {/* Tab Content Cards Container */}
+          {/* Wizard Step Content Container */}
           <div className="bg-white border-2 border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs min-h-[460px] flex flex-col justify-between">
-            {/* 1. COLOR PALETTES (6 Presets + 7th Custom Color Card) */}
-            {activeTab === 'colors' && (
+            {/* 1. COLOR PALETTES (Step 1) */}
+            {wizardStep === 1 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display font-black text-lg text-[#252735]">
@@ -532,8 +578,8 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             )}
 
-            {/* 2. OUTFIT (6 3D Pixar Outfits + 7th Custom Card with Improved Text Input) */}
-            {activeTab === 'outfit' && (
+            {/* 2. OUTFIT (Step 2) */}
+            {wizardStep === 2 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display font-black text-lg text-[#252735]">
@@ -643,8 +689,8 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             )}
 
-            {/* 3. ACCESSORIES (10 3D Pixar Accessories + Custom Card with Improved Text Input) */}
-            {activeTab === 'accessory' && (
+            {/* 3. ACCESSORIES (Step 3) */}
+            {wizardStep === 3 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display font-black text-lg text-[#252735]">
@@ -754,8 +800,8 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             )}
 
-            {/* 4. TRAITS & PERSONALITY (6 Consistent Sims-Style Character Portraits + 7th Custom Card) */}
-            {activeTab === 'expression' && (
+            {/* 4. TRAITS & PERSONALITY (Step 4) */}
+            {wizardStep === 4 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display font-black text-lg text-[#252735]">
@@ -865,8 +911,8 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             )}
 
-            {/* 5. POSE (6 3D Poses + 7th Custom Card with Text Input) */}
-            {activeTab === 'pose' && (
+            {/* 5. POSE (Step 5) */}
+            {wizardStep === 5 && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-display font-black text-lg text-[#252735]">
@@ -976,21 +1022,12 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             )}
 
-            {/* Quick Next Category Navigation Bullets */}
+            {/* Step Status Indicator at Card Footer */}
             <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500">
-              <span>Кликни по предмету, чтобы добавить его на концепт-доску</span>
-              <div className="flex gap-1.5">
-                {(['colors', 'outfit', 'accessory', 'expression', 'pose'] as AppearanceTab[]).map(
-                  (tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`h-2.5 rounded-full transition-all cursor-pointer ${
-                        activeTab === tab ? 'w-6 bg-[#252735]' : 'w-2.5 bg-slate-300 hover:bg-slate-400'
-                      }`}
-                    />
-                  )
-                )}
+              <span>Кликни по варианту, чтобы добавить его на концепт-доску</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-400">Категория:</span>
+                <span className="text-[#252735] font-black">{WIZARD_STEPS[wizardStep].category} ({wizardStep}/5)</span>
               </div>
             </div>
           </div>
@@ -1232,24 +1269,21 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
       {/* Dynamic Live Prompt Preview Banner */}
       <LivePromptBanner character={{ ...character, appearance }} />
 
-      {/* Nav Actions */}
+      {/* Wizard Navigation Actions */}
       <div className="flex items-center justify-between pt-4">
         <button
-          onClick={() => {
-            playClickSound();
-            onPrev();
-          }}
+          onClick={handleStepPrev}
           className="btn-3d-white flex items-center gap-2 px-6 py-3.5 rounded-2xl font-display font-black text-base cursor-pointer border-2 border-slate-300"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Назад: Роль</span>
+          <span>{WIZARD_STEPS[wizardStep].prevBtnText}</span>
         </button>
 
         <button
-          onClick={handleNext}
+          onClick={handleStepNext}
           className="btn-3d-lime flex items-center gap-2.5 px-8 py-4 rounded-2xl font-display font-black text-lg cursor-pointer border-2 border-[#252735]"
         >
-          <span>Дальше: Прокачать промпт</span>
+          <span>{WIZARD_STEPS[wizardStep].nextBtnText}</span>
           <ArrowRight className="w-5 h-5 stroke-[3]" />
         </button>
       </div>

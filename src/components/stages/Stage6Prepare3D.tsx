@@ -1,9 +1,19 @@
 import React, { useState } from 'react';
 import { CharacterData } from '../../types/avatar';
-import { EXTERNAL_3D_GENERATORS, ASSETS } from '../../data/labData';
+import { EXTERNAL_3D_GENERATORS } from '../../data/labData';
 import { MascotPixel } from '../MascotPixel';
 import { playClickSound, playSelectSound, playSuccessSound, playBadgeSound } from '../../services/soundEffects';
-import { ArrowRight, ArrowLeft, Check, Box, Layers, ExternalLink, Upload, Sparkles, RefreshCw } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Box,
+  ExternalLink,
+  Upload,
+  Sparkles,
+  Image as ImageIcon,
+  Trash2,
+} from 'lucide-react';
 
 interface Stage6Prepare3DProps {
   character: CharacterData;
@@ -31,6 +41,11 @@ export const Stage6Prepare3D: React.FC<Stage6Prepare3DProps> = ({
     character.threeDResultUrl
   );
   const [wireframeMode, setWireframeMode] = useState(false);
+  const [viewMode, setViewMode] = useState<'3d_model' | '2d_concept'>(() => {
+    if (character.threeDResultUrl) return '3d_model';
+    if (character.generatedImageUrl) return '2d_concept';
+    return '3d_model';
+  });
 
   const toggleCheck = (key: keyof typeof checks) => {
     playSelectSound();
@@ -119,45 +134,172 @@ export const Stage6Prepare3D: React.FC<Stage6Prepare3DProps> = ({
 
         {/* Visual Dual Display: 2D Concept & 3D Simulation */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-          {/* 2D Image Viewport & Upload */}
+          {/* Visual Concept / 3D Viewport with Empty Upload State */}
           <div className="flex flex-col gap-3">
-            <div className="relative rounded-2xl overflow-hidden border-3 border-[#252735] shadow-[0_6px_0_#252735] bg-slate-50 aspect-square flex items-center justify-center">
-              <img
-                src={character.generatedImageUrl || ASSETS.robloxSampleHero}
-                alt="2D концепт"
-                className={`w-full h-full object-contain transition-all duration-300 ${
-                  wireframeMode ? 'brightness-90 contrast-125' : ''
+            {/* View Switcher Tabs */}
+            <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => {
+                  playClickSound();
+                  setViewMode('3d_model');
+                }}
+                className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  viewMode === '3d_model'
+                    ? 'bg-white text-[#252735] shadow-xs font-black'
+                    : 'text-slate-500 hover:text-[#252735]'
                 }`}
-                referrerPolicy="no-referrer"
-              />
-
-              {/* Wireframe mesh overlay effect when toggled */}
-              {wireframeMode && (
-                <div
-                  className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#B9F24D_1px,transparent_1px),linear-gradient(to_bottom,#B9F24D_1px,transparent_1px)] bg-[size:24px_24px]"
-                />
-              )}
-
-              <div className="absolute top-3 left-3 bg-[#252735]/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                {character.generatedImageUrl ? 'Твой концепт-арт' : 'Образец концепта'}
-              </div>
+              >
+                <Box className="w-3.5 h-3.5 text-indigo-500" />
+                <span>3D-модель {threeDResultUrl ? '✓' : ''}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  playClickSound();
+                  setViewMode('2d_concept');
+                }}
+                className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  viewMode === '2d_concept'
+                    ? 'bg-white text-[#252735] shadow-xs font-black'
+                    : 'text-slate-500 hover:text-[#252735]'
+                }`}
+              >
+                <ImageIcon className="w-3.5 h-3.5 text-sky-500" />
+                <span>2D-концепт {character.generatedImageUrl ? '✓' : ''}</span>
+              </button>
             </div>
 
-            {/* 2D Image Upload Button */}
-            <label className="btn-3d-white flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold border-2 border-slate-300 hover:border-[#252735] cursor-pointer transition-colors shadow-2xs">
-              <Upload className="w-4 h-4 text-[#252735]" />
-              <span>
-                {character.generatedImageUrl
-                  ? 'Заменить картинку героя'
-                  : 'Загрузить созданную картинку'}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handle2DImageUpload}
-                className="hidden"
-              />
-            </label>
+            {/* Viewport Box */}
+            {viewMode === '3d_model' ? (
+              threeDResultUrl ? (
+                <div className="flex flex-col gap-2">
+                  <div className="relative rounded-2xl overflow-hidden border-3 border-[#252735] shadow-[0_6px_0_#252735] bg-slate-50 aspect-square flex items-center justify-center">
+                    <img
+                      src={threeDResultUrl}
+                      alt="3D-модель"
+                      className={`w-full h-full object-contain transition-all duration-300 ${
+                        wireframeMode ? 'brightness-90 contrast-125' : ''
+                      }`}
+                      referrerPolicy="no-referrer"
+                    />
+
+                    {wireframeMode && (
+                      <div
+                        className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#B9F24D_1px,transparent_1px),linear-gradient(to_bottom,#B9F24D_1px,transparent_1px)] bg-[size:24px_24px]"
+                      />
+                    )}
+
+                    <div className="absolute top-3 left-3 bg-[#252735]/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#B9F24D]" />
+                      <span>Твоя 3D-модель</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="btn-3d-white flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold border-2 border-slate-300 hover:border-[#252735] cursor-pointer transition-colors shadow-2xs">
+                      <Upload className="w-3.5 h-3.5 text-[#252735]" />
+                      <span>Заменить 3D-скриншот</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleThreeDUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playClickSound();
+                        setThreeDResultUrl(undefined);
+                        onUpdate({ threeDResultUrl: undefined });
+                      }}
+                      className="p-2 rounded-xl border border-slate-200 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 cursor-pointer"
+                      title="Удалить скриншот"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="relative rounded-3xl border-3 border-dashed border-slate-300 hover:border-[#252735] hover:bg-slate-100/70 bg-slate-50 aspect-square flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all group shadow-xs">
+                  <div className="w-16 h-16 rounded-2xl bg-white border-2 border-slate-300 group-hover:border-[#252735] group-hover:scale-105 flex items-center justify-center mb-3 shadow-xs transition-all">
+                    <Upload className="w-8 h-8 text-slate-500 group-hover:text-[#252735] transition-colors" />
+                  </div>
+                  <span className="font-display font-black text-base sm:text-lg text-[#252735] mb-1">
+                    Загрузите сюда вашу 3D-модель или скриншот
+                  </span>
+                  <p className="text-xs text-slate-500 max-w-xs mb-3">
+                    Сделай скриншот модели в Tripo3D / Meshy и прикрепи его сюда (PNG, JPG)
+                  </p>
+                  <span className="btn-3d-lime px-4 py-2 rounded-xl text-xs font-display font-black border border-[#252735]">
+                    Выбрать файл с ПК
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleThreeDUpload}
+                    className="hidden"
+                  />
+                </label>
+              )
+            ) : character.generatedImageUrl ? (
+              <div className="flex flex-col gap-2">
+                <div className="relative rounded-2xl overflow-hidden border-3 border-[#252735] shadow-[0_6px_0_#252735] bg-slate-50 aspect-square flex items-center justify-center">
+                  <img
+                    src={character.generatedImageUrl}
+                    alt="2D концепт"
+                    className={`w-full h-full object-contain transition-all duration-300 ${
+                      wireframeMode ? 'brightness-90 contrast-125' : ''
+                    }`}
+                    referrerPolicy="no-referrer"
+                  />
+
+                  {wireframeMode && (
+                    <div
+                      className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#B9F24D_1px,transparent_1px),linear-gradient(to_bottom,#B9F24D_1px,transparent_1px)] bg-[size:24px_24px]"
+                    />
+                  )}
+
+                  <div className="absolute top-3 left-3 bg-[#252735]/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#62C9F5]" />
+                    <span>2D концепт-арт</span>
+                  </div>
+                </div>
+
+                <label className="btn-3d-white flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold border-2 border-slate-300 hover:border-[#252735] cursor-pointer transition-colors shadow-2xs">
+                  <Upload className="w-3.5 h-3.5 text-[#252735]" />
+                  <span>Заменить картинку героя</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handle2DImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            ) : (
+              <label className="relative rounded-3xl border-3 border-dashed border-slate-300 hover:border-[#252735] hover:bg-slate-100/70 bg-slate-50 aspect-square flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all group shadow-xs">
+                <div className="w-16 h-16 rounded-2xl bg-white border-2 border-slate-300 group-hover:border-[#252735] group-hover:scale-105 flex items-center justify-center mb-3 shadow-xs transition-all">
+                  <Upload className="w-8 h-8 text-slate-500 group-hover:text-[#252735] transition-colors" />
+                </div>
+                <span className="font-display font-black text-base sm:text-lg text-[#252735] mb-1">
+                  Загрузите сюда вашу 3D-модель или скриншот
+                </span>
+                <p className="text-xs text-slate-500 max-w-xs mb-3">
+                  Загрузите концепт-арт или рендер (PNG, JPG)
+                </p>
+                <span className="btn-3d-lime px-4 py-2 rounded-xl text-xs font-display font-black border border-[#252735]">
+                  Выбрать файл с ПК
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handle2DImageUpload}
+                  className="hidden"
+                />
+              </label>
+            )}
           </div>
 
           {/* 3D Model Readiness Check Cards (NO bullet lists!) */}
@@ -296,27 +438,51 @@ export const Stage6Prepare3D: React.FC<Stage6Prepare3DProps> = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {EXTERNAL_3D_GENERATORS.map((gen) => (
-              <a
-                key={gen.id}
-                href={gen.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => playClickSound()}
-                className="p-4 rounded-2xl border-2 border-slate-200 hover:border-[#252735] hover:bg-slate-50 transition-all flex items-center justify-between"
-              >
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-sm text-[#252735]">
-                      {gen.name}
-                    </span>
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {EXTERNAL_3D_GENERATORS.map((gen) => {
+              const isTripo = gen.id === 'tripo3d';
+              return (
+                <a
+                  key={gen.id}
+                  href={gen.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => playClickSound()}
+                  className={`relative p-5 rounded-3xl border-2 transition-all flex flex-col justify-between gap-3 group ${
+                    isTripo
+                      ? 'border-[#B9F24D] bg-[#B9F24D]/10 hover:bg-[#B9F24D]/20 shadow-[0_0_25px_rgba(185,242,77,0.45)] ring-2 ring-[#B9F24D]'
+                      : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 shadow-xs'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-display font-black text-lg text-[#252735]">
+                          {gen.name}
+                        </span>
+                        {isTripo && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider bg-[#B9F24D] text-[#252735] px-2.5 py-0.5 rounded-full border border-[#252735] shadow-xs">
+                            <Sparkles className="w-3 h-3 text-[#252735]" />
+                            Рекомендуем
+                          </span>
+                        )}
+                      </div>
+                      <ExternalLink className={`w-4 h-4 shrink-0 ${isTripo ? 'text-[#252735]' : 'text-slate-400'}`} />
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed">{gen.description}</p>
                   </div>
-                  <p className="text-xs text-slate-500">{gen.description}</p>
-                </div>
-              </a>
-            ))}
+
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs font-bold">
+                    <span className={isTripo ? 'text-emerald-800 font-extrabold' : 'text-slate-500'}>
+                      {isTripo ? '⚡️ Генерация 3D за 10 секунд' : '3D меши и полигоны'}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 ${isTripo ? 'text-[#252735] font-black underline' : 'text-sky-600'}`}>
+                      Открыть сайт →
+                    </span>
+                  </div>
+                </a>
+              );
+            })}
           </div>
 
           {/* Optional: upload 3D model screenshot */}

@@ -117,7 +117,8 @@ export const EXTERNAL_3D_GENERATORS = [
     name: 'Tripo3D',
     url: 'https://www.tripo3d.ai/',
     description: 'Быстрое превращение картинки в 3D-модель (GLB) за 10 секунд',
-    color: '#62C9F5',
+    color: '#B9F24D',
+    isRecommended: true,
   },
   {
     id: 'meshy',
@@ -125,6 +126,7 @@ export const EXTERNAL_3D_GENERATORS = [
     url: 'https://www.meshy.ai/',
     description: 'Генерация 3D-моделей с текстурами и оптимизированной сеткой для игр',
     color: '#BDA7FF',
+    isRecommended: false,
   },
 ];
 
