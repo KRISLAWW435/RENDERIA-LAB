@@ -280,22 +280,43 @@ export function resolvePaletteColors(palette?: {
   primary?: string;
   secondary?: string;
   accent?: string;
-}): string {
-  if (!palette) return 'голубой, мятный, белый';
+} | null): string {
+  if (!palette || !palette.id) return '';
 
-  // 1. If preset id matches, always return its canonical literal colors
+  // 1. If primary, secondary, and accent hexes exist, always list them directly without any label or prefix
+  if (palette.primary && palette.secondary && palette.accent) {
+    return `${palette.primary}, ${palette.secondary}, ${palette.accent}`;
+  }
+
+  // 2. Extract hex codes if present in promptColors or name (e.g. "Мой цвет (#06b0f9, #fb5050, #08c485)")
+  const rawColorsText = `${palette.promptColors || ''} ${palette.name || ''}`;
+  const hexMatch = rawColorsText.match(/#[0-9a-fA-F]{3,8}(?:\s*,\s*#[0-9a-fA-F]{3,8})+/);
+  if (hexMatch) {
+    return hexMatch[0];
+  }
+
+  // 3. If preset id matches, always return its canonical literal colors
   const preset = COLOR_PALETTES.find((p) => p.id === palette.id);
   if (preset) {
     return preset.promptColors || preset.colors.join(', ');
   }
 
-  // 2. If colors array exists
+  // 4. If colors array exists
   if (Array.isArray(palette.colors) && palette.colors.length > 0) {
     return palette.colors.join(', ');
   }
 
-  // 3. If promptColors is clean and not an old abstract title
+  // 5. If promptColors is provided, sanitize and check against legacy titles
   if (palette.promptColors && typeof palette.promptColors === 'string') {
+    let cleaned = palette.promptColors.trim();
+    if (cleaned.toLowerCase().includes('мой цвет') || cleaned.toLowerCase().includes('свой цвет')) {
+      const match = cleaned.match(/\((.*?)\)/);
+      if (match && match[1]) {
+        cleaned = match[1].trim();
+      } else {
+        cleaned = cleaned.replace(/^(мой|свой)\s+цвет\s*:?\s*/i, '').trim();
+      }
+    }
     const legacyTitles = [
       'Мятное небо',
       'Небесный & Мята',
@@ -304,19 +325,20 @@ export function resolvePaletteColors(palette?: {
       'Золотой феникс',
       'Сахарная вата',
       'Салатовый и неон',
-      'Салатовый и неон',
     ];
-    if (!legacyTitles.includes(palette.promptColors.trim())) {
-      return palette.promptColors.trim();
+    if (!legacyTitles.includes(cleaned) && cleaned) {
+      return cleaned;
     }
   }
 
-  // 4. Custom palette fallback
-  if (palette.id === 'custom_palette' && palette.name && palette.name !== 'Свой цвет') {
-    return palette.name;
+  // 6. Custom palette fallback
+  if (palette.id === 'custom_palette') {
+    if (palette.name && palette.name !== 'Свой цвет' && palette.name !== 'Мой цвет') {
+      return palette.name;
+    }
   }
 
-  return 'голубой, мятный, белый';
+  return '';
 }
 
 export const OUTFITS = [
@@ -511,25 +533,52 @@ export const VISUAL_STYLES: { id: VisualStyleId; name: string; description: stri
  * Appends visual style only when hasLearnedStyle is true.
  */
 export function buildSynthesizedPrompt(
-  name: string,
-  roleId: RoleId,
-  power: string,
-  styleId: VisualStyleId,
-  appearance: AppearanceState,
+  name?: string,
+  roleId?: RoleId | null | '',
+  power?: string,
+  styleId?: VisualStyleId,
+  appearance?: AppearanceState | null,
   customRoleTitle?: string,
   hasLearnedStyle: boolean = true
 ): { ru: string; en: string } {
-  const role = ROLES.find((r) => r.id === roleId) || ROLES[0];
-  const charName = name.trim() || 'Герой RENDERIA';
-  const roleTitleRu = roleId === 'custom' && customRoleTitle?.trim() ? customRoleTitle.trim() : role.title;
-  const styleObj = VISUAL_STYLES.find((s) => s.id === styleId) || VISUAL_STYLES[0];
-  const colors = resolvePaletteColors(appearance.colorPalette);
-  const poseName = appearance.pose?.name || 'Стоит ровно (T-поза)';
+  const charName = name?.trim();
+  const hasName = Boolean(charName);
+  const hasRole = Boolean(roleId);
+  const hasPower = Boolean(power?.trim());
+  const hasOutfit = Boolean(appearance?.outfit?.name?.trim());
+  const hasAccessory = Boolean(appearance?.accessory?.name?.trim());
+  const colors = resolvePaletteColors(appearance?.colorPalette);
+  const hasColors = Boolean(colors?.trim());
+  const hasExpression = Boolean(appearance?.expression?.name?.trim());
+  const hasPose = Boolean(appearance?.pose?.name?.trim());
 
-  const baseRu = `Создай оригинального игрового персонажа. Имя: ${charName}. Роль: ${roleTitleRu}. Суперспособность: ${power}. Костюм: ${appearance.outfit.name}. Аксессуар: ${appearance.accessory.name}. Цвета: ${colors}. Характер: ${appearance.expression.name}. Поза: ${poseName}. Покажи персонажа целиком на чистом светлом фоне.`;
-  const ru = hasLearnedStyle
-    ? `${baseRu} Стиль: ${styleObj.name}.`
-    : baseRu;
+  const hasAnyCategory =
+    hasRole || hasPower || hasOutfit || hasAccessory || hasColors || hasExpression || hasPose || hasName;
+
+  if (!hasAnyCategory) {
+    return { ru: '', en: '' };
+  }
+
+  let ru = 'Создай оригинального игрового персонажа. ';
+  if (hasName) ru += `Имя: ${charName}. `;
+  if (hasRole) {
+    const role = ROLES.find((r) => r.id === roleId);
+    const roleTitleRu =
+      roleId === 'custom' && customRoleTitle?.trim() ? customRoleTitle.trim() : (role?.title || 'Герой');
+    ru += `Роль: ${roleTitleRu}. `;
+  }
+  if (hasPower) ru += `Суперспособность: ${power!.trim()}. `;
+  if (hasOutfit) ru += `Костюм: ${appearance!.outfit!.name.trim()}. `;
+  if (hasAccessory) ru += `Аксессуар: ${appearance!.accessory!.name.trim()}. `;
+  if (hasColors) ru += `Цвета костюма: ${colors.trim()}. `;
+  if (hasExpression) ru += `Характер: ${appearance!.expression!.name.trim()}. `;
+  if (hasPose) ru += `Поза: ${appearance!.pose!.name.trim()}. `;
+
+  ru += 'Покажи персонажа целиком на чистом изолированном белом фоне.';
+
+  if (hasLearnedStyle) {
+    ru += ' Стиль Roblox.';
+  }
 
   // English prompt optimized for AI image models (DALL-E 3, Midjourney, Recraft, Leonardo)
   const roleEnglishMap: Record<RoleId, string> = {
@@ -540,57 +589,106 @@ export function buildSynthesizedPrompt(
     custom: customRoleTitle?.trim() || 'Custom Stylized Hero',
   };
 
-  const stylePromptMap: Record<VisualStyleId, string> = {
-    roblox_3d: 'classic Roblox blocky avatar style, clean block proportions, smooth plastic toy materials',
-    plastic_toy: 'stylized vinyl toy collectible, smooth matte plastic, clean rounded beveled edges',
-    cyber_future: 'futuristic friendly sci-fi game character, clean metallic and glowing polymer panels',
-  };
+  let en = 'Create an original 3D game character. ';
+  if (hasName) en += `Name: ${charName}. `;
+  if (hasRole && roleId) {
+    en += `Role: ${roleEnglishMap[roleId] || 'Hero'}. `;
+  }
+  if (hasPower) en += `Superpower: ${power!.trim()}. `;
+  if (hasOutfit) en += `Costume: ${appearance!.outfit!.name.trim()}. `;
+  if (hasAccessory) en += `Accessory: ${appearance!.accessory!.name.trim()}. `;
+  if (hasColors) en += `Colors: ${colors.trim()}. `;
+  if (hasExpression) en += `Character: ${appearance!.expression!.name.trim()}. `;
+  if (hasPose) en += `Pose: ${appearance!.pose!.name.trim()}. `;
 
-  const baseEn = `Create an original 3D game character. Name: ${charName}. Role: ${roleEnglishMap[roleId] || 'Hero'}. Superpower: ${power}. Costume: ${appearance.outfit.name}. Accessory: ${appearance.accessory.name}. Colors: ${colors}. Character: ${appearance.expression.name}. Pose: ${poseName}. Full-body shot, single character centered, high contrast, clean solid plain light studio background, isolated, sharp crisp silhouette ready for image-to-3D mesh generation.`;
-  const en = hasLearnedStyle
-    ? `${baseEn} Art style: ${stylePromptMap[styleId]}.`
-    : baseEn;
+  en +=
+    'Full-body shot, single character centered, high contrast, clean solid plain light studio background, isolated, sharp crisp silhouette ready for image-to-3D mesh generation.';
 
-  return { ru, en };
+  if (hasLearnedStyle) {
+    en += ' Art style: classic Roblox blocky avatar style, clean block proportions, smooth plastic toy materials.';
+  }
+
+  return { ru: sanitizePromptRu(ru), en: en.trim() };
+}
+
+/**
+ * Ensures Russian prompt strings strictly conform to specification:
+ * - "Цвета костюма: ..." instead of "Цвета: ..." or "Цвета: Мой цвет (...)"
+ * - "на чистом изолированном белом фоне" instead of "на чистом светлом фоне"
+ * - "Стиль Roblox."
+ */
+export function sanitizePromptRu(prompt?: string | null): string {
+  if (!prompt) return '';
+  return prompt
+    .replace(/Цвета:\s*(?:Мой цвет|Свой цвет)?\s*\((.*?)\)/gi, 'Цвета костюма: $1')
+    .replace(/Цвета:\s*(?:Мой цвет|Свой цвет)\s*/gi, 'Цвета костюма: ')
+    .replace(/Цвета:\s*/gi, 'Цвета костюма: ')
+    .replace(/Цвета костюма:\s*(?:Мой цвет|Свой цвет)\s*\((.*?)\)/gi, 'Цвета костюма: $1')
+    .replace(/Цвета костюма:\s*(?:Мой цвет|Свой цвет)\s*/gi, 'Цвета костюма: ')
+    .replace(/на чистом светлом фоне/gi, 'на чистом изолированном белом фоне')
+    .replace(/Стиль:\s*стиль\s+Roblox\.?/gi, 'Стиль Roblox.')
+    .replace(/Стиль:\s*Roblox\.?/gi, 'Стиль Roblox.')
+    .replace(/Стиль:\s*виниловая 3D-фигурка\.?/gi, 'Стиль Roblox.')
+    .replace(/Стиль:\s*футуристический кибер-стиль\.?/gi, 'Стиль Roblox.')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**
  * Dynamic "Мой промпт" (Live Prompt Builder)
  * Automatically updates as the child selects role, power, colors, suit, accessory, trait, and pose in Stages 1 & 2.
- * Before Stage 3: describes character elements without visual style.
- * After Stage 3 (hasLearnedStyle = true): appends the chosen visual style.
- * Uses exact template:
- * «Создай оригинального игрового персонажа. Роль: [Роль]. Суперспособность: [Сила]. Костюм: [Костюм]. Аксессуар: [Аксессуар]. Цвета: [Цвета]. Характер: [Характер]. Поза: [Поза]. Покажи персонажа целиком на чистом светлом фоне. Стиль: [Стиль].»
+ * Follows conditional puzzle logic: only appends text for categories that have been chosen.
+ * If nothing selected yet, returns an empty string.
  */
 export function buildLiveUserPrompt(character: {
-  role?: RoleId;
+  role?: RoleId | null | '';
   customRoleTitle?: string;
   name?: string;
   power?: string;
   style?: VisualStyleId;
-  appearance?: AppearanceState;
+  appearance?: AppearanceState | null;
   hasLearnedStyle?: boolean;
 }): string {
-  const role = character.role || 'cosmic_explorer';
-  const roleMeta = ROLES.find((r) => r.id === role) || ROLES[0];
-  const roleTitle =
-    role === 'custom' && character.customRoleTitle?.trim()
-      ? character.customRoleTitle.trim()
-      : roleMeta.title;
-
-  const power = (character.power || 'Управляет гравитацией и открывает порталы').trim();
-  const outfit = character.appearance?.outfit?.name || 'Космический скафандр';
-  const accessory = character.appearance?.accessory?.name || 'Голо-визор';
+  const hasRole = Boolean(character.role);
+  const hasPower = Boolean(character.power?.trim());
+  const hasOutfit = Boolean(character.appearance?.outfit?.name?.trim());
+  const hasAccessory = Boolean(character.appearance?.accessory?.name?.trim());
   const colors = resolvePaletteColors(character.appearance?.colorPalette);
-  const trait = character.appearance?.expression?.name || 'Радостный';
-  const pose = character.appearance?.pose?.name || 'Стоит ровно (T-поза)';
-  const styleObj = VISUAL_STYLES.find((s) => s.id === character.style) || VISUAL_STYLES[0];
+  const hasColors = Boolean(colors?.trim());
+  const hasExpression = Boolean(character.appearance?.expression?.name?.trim());
+  const hasPose = Boolean(character.appearance?.pose?.name?.trim());
+  const charName = character.name?.trim();
+  const hasName = Boolean(charName);
 
-  const basePrompt = `Создай оригинального игрового персонажа. Роль: ${roleTitle}. Суперспособность: ${power}. Костюм: ${outfit}. Аксессуар: ${accessory}. Цвета: ${colors}. Характер: ${trait}. Поза: ${pose}. Покажи персонажа целиком на чистом светлом фоне.`;
+  const hasAnyCategory =
+    hasRole || hasPower || hasOutfit || hasAccessory || hasColors || hasExpression || hasPose || hasName;
 
-  if (character.hasLearnedStyle) {
-    return `${basePrompt} Стиль: ${styleObj.name}.`;
+  if (!hasAnyCategory) {
+    return '';
   }
 
-  return basePrompt;
+  let prompt = 'Создай оригинального игрового персонажа. ';
+  if (hasName) prompt += `Имя: ${charName}. `;
+  if (hasRole) {
+    const roleMeta = ROLES.find((r) => r.id === character.role);
+    const roleTitle =
+      character.role === 'custom' && character.customRoleTitle?.trim()
+        ? character.customRoleTitle.trim()
+        : (roleMeta?.title || 'Герой');
+    prompt += `Роль: ${roleTitle}. `;
+  }
+  if (hasPower) prompt += `Суперспособность: ${character.power!.trim()}. `;
+  if (hasOutfit) prompt += `Костюм: ${character.appearance!.outfit!.name.trim()}. `;
+  if (hasAccessory) prompt += `Аксессуар: ${character.appearance!.accessory!.name.trim()}. `;
+  if (hasColors) prompt += `Цвета костюма: ${colors.trim()}. `;
+  if (hasExpression) prompt += `Характер: ${character.appearance!.expression!.name.trim()}. `;
+  if (hasPose) prompt += `Поза: ${character.appearance!.pose!.name.trim()}. `;
+
+  prompt += 'Покажи персонажа целиком на чистом изолированном белом фоне.';
+
+  if (character.hasLearnedStyle) {
+    prompt += ' Стиль Roblox.';
+  }
+
+  return sanitizePromptRu(prompt);
 }

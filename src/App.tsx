@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { StageId, CharacterData, BadgeItem } from './types/avatar';
-import { COLOR_PALETTES, OUTFITS, ACCESSORIES, EXPRESSIONS, POSES, SPECIAL_GEAR, ROLES } from './data/labData';
+import { COLOR_PALETTES, POSES } from './data/labData';
 import { Header } from './components/Header';
 import { StageRoadmap } from './components/StageRoadmap';
 import { IntroScreen } from './components/IntroScreen';
@@ -17,30 +17,7 @@ import { Stage5GenerateImage } from './components/stages/Stage5GenerateImage';
 import { Stage6Prepare3D } from './components/stages/Stage6Prepare3D';
 import { FinalAchievement } from './components/FinalAchievement';
 import { startBackgroundMusic } from './services/soundEffects';
-
-const INITIAL_CHARACTER: CharacterData = {
-  name: 'Астро-Пилот',
-  role: 'cosmic_explorer',
-  power: 'Управляет гравитацией и открывает порталы',
-  style: 'roblox_3d',
-  hasLearnedStyle: false,
-  appearance: {
-    colorPalette: COLOR_PALETTES[0],
-    outfit: OUTFITS[0],
-    accessory: ACCESSORIES[0],
-    expression: EXPRESSIONS[0],
-    pose: POSES[0],
-    specialGear: POSES[0],
-  },
-  isPromptCustomized: false,
-  threeDChecks: {
-    fullBody: true,
-    singleHero: true,
-    clearBackground: true,
-    sharpDetails: true,
-  },
-  generatedImageSource: null,
-};
+import { CharacterProvider, useCharacter } from './context/CharacterContext';
 
 const INITIAL_BADGES: BadgeItem[] = [
   {
@@ -87,51 +64,18 @@ const INITIAL_BADGES: BadgeItem[] = [
   },
 ];
 
-export default function App() {
+function AppContent() {
   const [currentStage, setCurrentStage] = useState<StageId>('intro');
-  const [character, setCharacter] = useState<CharacterData>(INITIAL_CHARACTER);
+  const { character, updateCharacter, resetCharacter } = useCharacter();
   const [badges, setBadges] = useState<BadgeItem[]>(INITIAL_BADGES);
   const [completedStages, setCompletedStages] = useState<Record<string, boolean>>({});
 
-  // Load from localStorage if available
+  // Load badges and stage from localStorage if available
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('renderia_lab_state');
+      const saved = localStorage.getItem('renderia_lab_session');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.character) {
-          const char = parsed.character;
-          if (char.appearance) {
-            // Harmonize color palette with current presets
-            if (char.appearance.colorPalette?.id) {
-              const matchedPalette = COLOR_PALETTES.find((p) => p.id === char.appearance.colorPalette.id);
-              if (matchedPalette) {
-                char.appearance.colorPalette = {
-                  ...matchedPalette,
-                  ...char.appearance.colorPalette,
-                  name: matchedPalette.name,
-                  promptColors: matchedPalette.promptColors,
-                  colors: matchedPalette.colors,
-                };
-              }
-            }
-            // Harmonize pose if missing or using old specialGear
-            if (!char.appearance.pose && char.appearance.specialGear) {
-              char.appearance.pose = char.appearance.specialGear;
-            }
-            if (char.appearance.pose?.id) {
-              const matchedPose = POSES.find((p) => p.id === char.appearance.pose.id);
-              if (matchedPose) {
-                char.appearance.pose = {
-                  ...matchedPose,
-                  ...char.appearance.pose,
-                  name: matchedPose.name,
-                };
-              }
-            }
-          }
-          setCharacter(char);
-        }
         if (parsed.currentStage) setCurrentStage(parsed.currentStage);
         if (parsed.badges) setBadges(parsed.badges);
         if (parsed.completedStages) setCompletedStages(parsed.completedStages);
@@ -141,13 +85,12 @@ export default function App() {
     }
   }, []);
 
-  // Save state changes to localStorage
+  // Save stage and badges changes to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(
-        'renderia_lab_state',
+        'renderia_lab_session',
         JSON.stringify({
-          character,
           currentStage,
           badges,
           completedStages,
@@ -156,11 +99,7 @@ export default function App() {
     } catch {
       // Ignore
     }
-  }, [character, currentStage, badges, completedStages]);
-
-  const updateCharacter = (patch: Partial<CharacterData>) => {
-    setCharacter((prev) => ({ ...prev, ...patch }));
-  };
+  }, [currentStage, badges, completedStages]);
 
   const markBadgeEarned = (badgeIndex: number) => {
     setBadges((prev) =>
@@ -219,12 +158,12 @@ export default function App() {
   };
 
   const handleReset = () => {
-    setCharacter(INITIAL_CHARACTER);
+    resetCharacter();
     setBadges(INITIAL_BADGES);
     setCompletedStages({});
     setCurrentStage('intro');
     try {
-      localStorage.removeItem('renderia_lab_state');
+      localStorage.removeItem('renderia_lab_session');
     } catch {
       // Ignore
     }
@@ -349,5 +288,13 @@ export default function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <CharacterProvider>
+      <AppContent />
+    </CharacterProvider>
   );
 }

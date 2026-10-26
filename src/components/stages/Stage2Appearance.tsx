@@ -40,39 +40,45 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
   // Custom states across categories
   const [customPaletteName, setCustomPaletteName] = useState<string>(
-    appearance.colorPalette.id === 'custom_palette' ? appearance.colorPalette.name : 'Мой цвет'
+    appearance.colorPalette?.id === 'custom_palette' &&
+      appearance.colorPalette.name !== 'Мой цвет' &&
+      appearance.colorPalette.name !== 'Свой цвет'
+      ? appearance.colorPalette.name
+      : ''
   );
   const [customPrimary, setCustomPrimary] = useState<string>(
-    appearance.colorPalette.id === 'custom_palette' ? appearance.colorPalette.primary : '#38BDF8'
+    appearance.colorPalette?.id === 'custom_palette' ? appearance.colorPalette.primary : '#38BDF8'
   );
   const [customSecondary, setCustomSecondary] = useState<string>(
-    appearance.colorPalette.id === 'custom_palette' ? appearance.colorPalette.secondary : '#FFFFFF'
+    appearance.colorPalette?.id === 'custom_palette' ? appearance.colorPalette.secondary : '#FFFFFF'
   );
   const [customAccent, setCustomAccent] = useState<string>(
-    appearance.colorPalette.id === 'custom_palette' ? appearance.colorPalette.accent : '#F43F5E'
+    appearance.colorPalette?.id === 'custom_palette' ? appearance.colorPalette.accent : '#F43F5E'
   );
 
   const [customOutfitName, setCustomOutfitName] = useState<string>(
-    appearance.outfit.id === 'custom_outfit' ? appearance.outfit.name : 'Костюм из облаков'
+    appearance.outfit?.id === 'custom_outfit' ? appearance.outfit.name : 'Костюм из облаков'
   );
 
   const [customAccessoryName, setCustomAccessoryName] = useState<string>(
-    appearance.accessory.id === 'custom_accessory' ? appearance.accessory.name : 'Летающий скейт'
+    appearance.accessory?.id === 'custom_accessory' ? appearance.accessory.name : 'Летающий скейт'
   );
 
   const [customExpressionName, setCustomExpressionName] = useState<string>(
-    appearance.expression.id === 'custom_expression' ? appearance.expression.name : 'Загадочный'
+    appearance.expression?.id === 'custom_expression' ? appearance.expression.name : 'Загадочный'
   );
 
   const [customPoseName, setCustomPoseName] = useState<string>(
     appearance.pose?.id === 'custom_pose' ? appearance.pose.name : 'Стойка ниндзя'
   );
 
-  const roleMeta = ROLES.find((r) => r.id === character.role) || ROLES[0];
+  const roleMeta = character.role ? (ROLES.find((r) => r.id === character.role) || ROLES[0]) : null;
   const roleTitle =
     character.role === 'custom' && character.customRoleTitle
       ? character.customRoleTitle
-      : roleMeta.title;
+      : roleMeta
+        ? roleMeta.title
+        : 'Герой не выбран';
 
   const triggerSelectEffect = (id: string) => {
     playSelectSound();
@@ -123,8 +129,8 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
     const palName = name !== undefined ? name : customPaletteName;
     const customPalette = {
       id: 'custom_palette',
-      name: palName.trim() || 'Свой цвет',
-      promptColors: palName.trim() ? `${palName.trim()} (${primary}, ${secondary}, ${accent})` : `${primary}, ${secondary}, ${accent}`,
+      name: palName.trim() || `${primary}, ${secondary}, ${accent}`,
+      promptColors: `${primary}, ${secondary}, ${accent}`,
       primary,
       secondary,
       accent,
@@ -332,7 +338,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
                   {COLOR_PALETTES.map((pal) => {
-                    const isSelected = appearance.colorPalette.id === pal.id;
+                    const isSelected = appearance.colorPalette?.id === pal.id;
                     const isPopping = justSelectedId === pal.id;
                     return (
                       <div
@@ -386,7 +392,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                   {/* 7th Card: "Свой цвет" (Custom Colors with HTML color pickers + custom name) */}
                   {(() => {
-                    const isCustomSelected = appearance.colorPalette.id === 'custom_palette';
+                    const isCustomSelected = appearance.colorPalette?.id === 'custom_palette';
                     return (
                       <div
                         onClick={() => {
@@ -540,7 +546,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
                   {OUTFITS.map((outfit) => {
-                    const isSelected = appearance.outfit.id === outfit.id;
+                    const isSelected = appearance.outfit?.id === outfit.id;
                     const isPopping = justSelectedId === outfit.id;
                     return (
                       <div
@@ -583,7 +589,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                   {/* 7th Card: "Свой вариант" with Creative Icon and Improved Text Input */}
                   {(() => {
-                    const isCustomSelected = appearance.outfit.id === 'custom_outfit';
+                    const isCustomSelected = appearance.outfit?.id === 'custom_outfit';
                     return (
                       <div
                         onClick={() => {
@@ -651,7 +657,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
                   {ACCESSORIES.map((acc) => {
-                    const isSelected = appearance.accessory.id === acc.id;
+                    const isSelected = appearance.accessory?.id === acc.id;
                     const isPopping = justSelectedId === acc.id;
                     return (
                       <div
@@ -694,7 +700,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                   {/* 7th Card: "Свой вариант" with Creative Icon and Improved Text Input */}
                   {(() => {
-                    const isCustomSelected = appearance.accessory.id === 'custom_accessory';
+                    const isCustomSelected = appearance.accessory?.id === 'custom_accessory';
                     return (
                       <div
                         onClick={() => {
@@ -762,7 +768,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
                   {EXPRESSIONS.map((expr) => {
-                    const isSelected = appearance.expression.id === expr.id;
+                    const isSelected = appearance.expression?.id === expr.id;
                     const isPopping = justSelectedId === expr.id;
                     return (
                       <div
@@ -805,7 +811,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
                   {/* 7th Card: "Свой вариант" with Neutral Avatar Icon and Improved Text Input */}
                   {(() => {
-                    const isCustomSelected = appearance.expression.id === 'custom_expression';
+                    const isCustomSelected = appearance.expression?.id === 'custom_expression';
                     return (
                       <div
                         onClick={() => {
@@ -1014,7 +1020,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                 {roleTitle}
               </p>
             </div>
-            {appearance.expression.image ? (
+            {appearance.expression?.image ? (
               <img
                 src={appearance.expression.image}
                 alt={appearance.expression.name}
@@ -1032,21 +1038,30 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
             {/* 1. Main Feature Tile: Selected Suit */}
             <div className="relative rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-50 group">
               <div className="aspect-[16/10] w-full overflow-hidden bg-white">
-                {appearance.outfit.image ? (
-                  <img
-                    src={appearance.outfit.image}
-                    alt={appearance.outfit.name}
-                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                    referrerPolicy="no-referrer"
-                  />
+                {appearance.outfit ? (
+                  appearance.outfit.image ? (
+                    <img
+                      src={appearance.outfit.image}
+                      alt={appearance.outfit.name}
+                      className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-sky-50 via-indigo-50 to-purple-50 text-sky-600 p-4">
+                      <Wand2 className="w-12 h-12 mb-2 animate-bounce" />
+                      <span className="font-display font-black text-sm text-[#252735]">
+                        {appearance.outfit.name}
+                      </span>
+                      <span className="text-xs text-sky-600 font-bold mt-0.5">
+                        Авторский концепт костюма
+                      </span>
+                    </div>
+                  )
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-sky-50 via-indigo-50 to-purple-50 text-sky-600 p-4">
-                    <Wand2 className="w-12 h-12 mb-2 animate-bounce" />
-                    <span className="font-display font-black text-sm text-[#252735]">
-                      {appearance.outfit.name}
-                    </span>
-                    <span className="text-xs text-sky-600 font-bold mt-0.5">
-                      Авторский концепт костюма
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 text-slate-400 p-4 border-2 border-dashed border-slate-200">
+                    <Shirt className="w-10 h-10 mb-1 opacity-40 text-slate-400" />
+                    <span className="font-bold text-xs text-slate-500">
+                      Костюм не выбран
                     </span>
                   </div>
                 )}
@@ -1057,12 +1072,14 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                     Костюм героя
                   </span>
                   <span className="font-display font-black text-sm text-[#252735] block line-clamp-1 break-words">
-                    {appearance.outfit.name}
+                    {appearance.outfit?.name || 'Не выбран'}
                   </span>
                 </div>
-                <span className="text-[11px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200 shrink-0">
-                  {appearance.outfit.image ? 'Основа' : '✨ Свой'}
-                </span>
+                {appearance.outfit && (
+                  <span className="text-[11px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200 shrink-0">
+                    {appearance.outfit.image ? 'Основа' : '✨ Свой'}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -1071,16 +1088,21 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               {/* Character Trait Tile (Consistent 3D Portrait) */}
               <div className="rounded-2xl overflow-hidden border-2 border-slate-200 bg-white flex flex-col justify-between group">
                 <div className="aspect-[4/3] w-full overflow-hidden bg-slate-50">
-                  {appearance.expression.image ? (
+                  {appearance.expression?.image ? (
                     <img
                       src={appearance.expression.image}
                       alt={appearance.expression.name}
                       className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
                       referrerPolicy="no-referrer"
                     />
-                  ) : (
+                  ) : appearance.expression ? (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 p-2 text-center">
                       <UserRound className="w-7 h-7 mb-1" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 p-2 text-center">
+                      <UserRound className="w-6 h-6 mb-1 opacity-40" />
+                      <span className="text-[10px] font-semibold text-slate-400">Не выбран</span>
                     </div>
                   )}
                 </div>
@@ -1089,7 +1111,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                     Характер
                   </span>
                   <span className="font-display font-black text-xs text-[#252735] line-clamp-2 leading-tight break-words">
-                    {appearance.expression.name}
+                    {appearance.expression?.name || 'Не выбран'}
                   </span>
                 </div>
               </div>
@@ -1097,16 +1119,21 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               {/* Accessory Tile */}
               <div className="rounded-2xl overflow-hidden border-2 border-slate-200 bg-white flex flex-col justify-between group">
                 <div className="aspect-[4/3] w-full overflow-hidden bg-slate-50">
-                  {appearance.accessory.image ? (
+                  {appearance.accessory?.image ? (
                     <img
                       src={appearance.accessory.image}
                       alt={appearance.accessory.name}
                       className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
                       referrerPolicy="no-referrer"
                     />
-                  ) : (
+                  ) : appearance.accessory ? (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 text-amber-600 p-2 text-center">
                       <Wand2 className="w-7 h-7 mb-1" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 p-2 text-center">
+                      <Shield className="w-6 h-6 mb-1 opacity-40" />
+                      <span className="text-[10px] font-semibold text-slate-400">Не выбран</span>
                     </div>
                   )}
                 </div>
@@ -1115,7 +1142,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                     Аксессуар
                   </span>
                   <span className="font-display font-black text-xs text-[#252735] line-clamp-2 leading-tight break-words">
-                    {appearance.accessory.name}
+                    {appearance.accessory?.name || 'Не выбран'}
                   </span>
                 </div>
               </div>
@@ -1130,9 +1157,14 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                       className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
                       referrerPolicy="no-referrer"
                     />
-                  ) : (
+                  ) : appearance.pose ? (
                     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 text-purple-600 p-2 text-center">
                       <Activity className="w-7 h-7 mb-1" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-400 p-2 text-center">
+                      <Activity className="w-6 h-6 mb-1 opacity-40" />
+                      <span className="text-[10px] font-semibold text-slate-400">Не выбрана</span>
                     </div>
                   )}
                 </div>
@@ -1141,7 +1173,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                     Поза
                   </span>
                   <span className="font-display font-black text-xs text-[#252735] line-clamp-2 leading-tight break-words">
-                    {appearance.pose?.name || 'Стоит ровно (T-поза)'}
+                    {appearance.pose?.name || 'Не выбрана'}
                   </span>
                 </div>
               </div>
@@ -1154,29 +1186,39 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                   Палитра костюма
                 </span>
                 <span className="font-display font-black text-xs sm:text-sm text-[#252735] block truncate">
-                  {COLOR_PALETTES.find((p) => p.id === appearance.colorPalette.id)?.name || appearance.colorPalette.name}
+                  {appearance.colorPalette
+                    ? (COLOR_PALETTES.find((p) => p.id === appearance.colorPalette?.id)?.name || appearance.colorPalette.name)
+                    : 'Не выбрана'}
                 </span>
                 <span className="text-[10px] font-semibold text-slate-500 block truncate">
-                  Цвета в промпте: {resolvePaletteColors(appearance.colorPalette)}
+                  Цвета в промпте: {resolvePaletteColors(appearance.colorPalette) || 'Не выбраны'}
                 </span>
               </div>
-              <div className="flex items-center gap-2 p-1 bg-white rounded-xl border border-slate-200 shadow-2xs shrink-0">
-                <span
-                  className="w-6 h-6 rounded-full border border-slate-300 shadow-xs"
-                  style={{ backgroundColor: appearance.colorPalette.primary }}
-                  title={appearance.colorPalette.primary}
-                />
-                <span
-                  className="w-6 h-6 rounded-full border border-slate-300 shadow-xs"
-                  style={{ backgroundColor: appearance.colorPalette.secondary }}
-                  title={appearance.colorPalette.secondary}
-                />
-                <span
-                  className="w-6 h-6 rounded-full border border-slate-300 shadow-xs"
-                  style={{ backgroundColor: appearance.colorPalette.accent }}
-                  title={appearance.colorPalette.accent}
-                />
-              </div>
+              {appearance.colorPalette ? (
+                <div className="flex items-center gap-2 p-1 bg-white rounded-xl border border-slate-200 shadow-2xs shrink-0">
+                  <span
+                    className="w-6 h-6 rounded-full border border-slate-300 shadow-xs"
+                    style={{ backgroundColor: appearance.colorPalette.primary }}
+                    title={appearance.colorPalette.primary}
+                  />
+                  <span
+                    className="w-6 h-6 rounded-full border border-slate-300 shadow-xs"
+                    style={{ backgroundColor: appearance.colorPalette.secondary }}
+                    title={appearance.colorPalette.secondary}
+                  />
+                  <span
+                    className="w-6 h-6 rounded-full border border-slate-300 shadow-xs"
+                    style={{ backgroundColor: appearance.colorPalette.accent }}
+                    title={appearance.colorPalette.accent}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-dashed border-slate-300 shrink-0">
+                  <span className="w-5 h-5 rounded-full border border-dashed border-slate-300 bg-white" />
+                  <span className="w-5 h-5 rounded-full border border-dashed border-slate-300 bg-white" />
+                  <span className="w-5 h-5 rounded-full border border-dashed border-slate-300 bg-white" />
+                </div>
+              )}
             </div>
           </div>
 

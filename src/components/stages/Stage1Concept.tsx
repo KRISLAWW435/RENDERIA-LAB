@@ -17,36 +17,28 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
   onUpdate,
   onNext,
 }) => {
-  const [selectedRole, setSelectedRole] = useState<RoleId>(character.role || 'cosmic_explorer');
-  const [heroName, setHeroName] = useState(character.name || 'Астро-Пилот');
+  const [selectedRole, setSelectedRole] = useState<RoleId | null>(character.role || null);
+  const [heroName, setHeroName] = useState(character.name || '');
   const [customRoleTitle, setCustomRoleTitle] = useState(character.customRoleTitle || '');
-  const [heroPower, setHeroPower] = useState(
-    character.power || ROLES.find((r) => r.id === character.role)?.defaultPower || ROLES[0].defaultPower
-  );
+  const [heroPower, setHeroPower] = useState(character.power || '');
 
-  const currentRoleMeta = ROLES.find((r) => r.id === selectedRole) || ROLES[0];
+  const currentRoleMeta = selectedRole ? (ROLES.find((r) => r.id === selectedRole) || ROLES[0]) : null;
 
   const handleRoleSelect = (roleId: RoleId) => {
     setSelectedRole(roleId);
     playSelectSound();
-    const roleMeta = ROLES.find((r) => r.id === roleId);
-    if (roleMeta) {
-      const isCustomPowerTyped = !ROLES.some((r) => r.suggestedPowers.includes(heroPower));
-      if (!isCustomPowerTyped) {
-        setHeroPower(roleMeta.defaultPower);
-        onUpdate({ role: roleId, power: roleMeta.defaultPower });
-      } else {
-        onUpdate({ role: roleId });
-      }
-    } else {
-      onUpdate({ role: roleId });
-    }
+    onUpdate({ role: roleId });
   };
 
   const handlePowerPreset = (powerText: string) => {
     playClickSound();
     setHeroPower(powerText);
     onUpdate({ power: powerText });
+  };
+
+  const handleNameChange = (nameText: string) => {
+    setHeroName(nameText);
+    onUpdate({ name: nameText });
   };
 
   const handleCustomRoleChange = (title: string) => {
@@ -58,19 +50,22 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
     playSuccessSound();
     onUpdate({
       role: selectedRole,
-      customRoleTitle: selectedRole === 'custom' ? customRoleTitle.trim() || 'Свой Герой' : undefined,
-      name: heroName.trim() || 'Мой Герой',
-      power: heroPower.trim() || currentRoleMeta.defaultPower,
+      customRoleTitle: selectedRole === 'custom' ? customRoleTitle.trim() : undefined,
+      name: heroName.trim(),
+      power: heroPower.trim(),
     });
     onNext();
   };
 
   const isCustomSuperpower =
     heroPower.trim().length > 0 &&
-    !currentRoleMeta.suggestedPowers.some((p) => p.trim() === heroPower.trim());
+    (!currentRoleMeta || !currentRoleMeta.suggestedPowers.some((p) => p.trim() === heroPower.trim()));
 
   // Mascot dynamic speech text reacting to user choices
   const getPixelSpeech = () => {
+    if (!selectedRole) {
+      return '«Привет! Я Пикс — твой помощник. Выбери класс персонажа, настрой суперсилу и дай ему имя!»';
+    }
     if (selectedRole === 'custom') {
       return customRoleTitle.trim()
         ? `«Класс «${customRoleTitle.trim()}» — звучит великолепно! Теперь выбери имя и суперсилу в панели справа!»`
@@ -128,9 +123,11 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
               </span>
             </h2>
             <span className="text-xs font-bold text-slate-500">
-              {selectedRole === 'custom'
-                ? (customRoleTitle.trim() ? `Свой: ${customRoleTitle}` : 'Свой вариант')
-                : currentRoleMeta.title}
+              {selectedRole
+                ? (selectedRole === 'custom'
+                  ? (customRoleTitle.trim() ? `Свой: ${customRoleTitle}` : 'Свой вариант')
+                  : currentRoleMeta?.title)
+                : 'Не выбран'}
             </span>
           </div>
 
@@ -295,9 +292,11 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
                 </h3>
               </div>
               <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-[#252735] border border-slate-200">
-                {selectedRole === 'custom'
-                  ? (customRoleTitle.trim() || 'Свой вариант')
-                  : currentRoleMeta.title}
+                {selectedRole
+                  ? (selectedRole === 'custom'
+                    ? (customRoleTitle.trim() || 'Свой вариант')
+                    : currentRoleMeta?.title)
+                  : 'Не выбран'}
               </span>
             </div>
 
@@ -379,23 +378,29 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
                 </span>
               </div>
               <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pr-1">
-                {currentRoleMeta.suggestedPowers.map((idea) => {
-                  const isActive = heroPower.trim() === idea.trim();
-                  return (
-                    <button
-                      key={idea}
-                      type="button"
-                      onClick={() => handlePowerPreset(idea)}
-                      className={`text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition-all border cursor-pointer select-none text-left leading-tight ${
-                        isActive
-                          ? 'bg-[#B9F24D] text-[#252735] border-[#252735] shadow-xs scale-102 ring-2 ring-[#B9F24D]/40'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
-                      }`}
-                    >
-                      ⚡️ {idea}
-                    </button>
-                  );
-                })}
+                {currentRoleMeta ? (
+                  currentRoleMeta.suggestedPowers.map((idea) => {
+                    const isActive = heroPower.trim() === idea.trim();
+                    return (
+                      <button
+                        key={idea}
+                        type="button"
+                        onClick={() => handlePowerPreset(idea)}
+                        className={`text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition-all border cursor-pointer select-none text-left leading-tight ${
+                          isActive
+                            ? 'bg-[#B9F24D] text-[#252735] border-[#252735] shadow-xs scale-102 ring-2 ring-[#B9F24D]/40'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                        }`}
+                      >
+                        ⚡️ {idea}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="w-full p-3 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-500 font-medium">
+                    👈 Сначала выбери класс персонажа слева, чтобы открыть список способностей
+                  </div>
+                )}
               </div>
             </div>
 

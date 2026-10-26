@@ -34,43 +34,43 @@ export interface AppearanceState {
     primary: string;
     secondary: string;
     accent: string;
-  };
+  } | null;
   outfit: {
     id: string;
     name: string;
     description: string;
     image?: string;
-  };
+  } | null;
   accessory: {
     id: string;
     name: string;
     description: string;
     image?: string;
-  };
+  } | null;
   expression: {
     id: string;
     name: string;
-    emoji: string;
+    emoji?: string;
     description: string;
     image?: string;
-  };
+  } | null;
   pose: {
     id: string;
     name: string;
     description: string;
     image?: string;
-  };
+  } | null;
   specialGear?: {
     id: string;
     name: string;
     description: string;
     image?: string;
-  };
+  } | null;
 }
 
 export interface CharacterData {
   name: string;
-  role: RoleId;
+  role: RoleId | null | '';
   customRoleTitle?: string;
   power: string;
   style: VisualStyleId;

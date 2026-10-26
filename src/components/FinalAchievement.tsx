@@ -41,13 +41,13 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
      АВАТАР-ЛАБОРАТОРИЯ RENDERIA: ПАСПОРТ ГЕРОЯ
 =====================================================
 Имя персонажа: ${character.name || 'Мой Герой'}
-Класс/Роль: ${character.role === 'custom' && character.customRoleTitle ? character.customRoleTitle : roleMeta.title}
-Главная способность: ${character.power}
-Цветовая палитра: ${character.appearance.colorPalette.name}
-Костюм: ${character.appearance.outfit.name} (${character.appearance.outfit.description})
-Аксессуар: ${character.appearance.accessory.name} (${character.appearance.accessory.description})
-Характер: ${character.appearance.expression.name}
-Поза: ${character.appearance.pose?.name || 'Стоит ровно (T-поза)'}
+Класс/Роль: ${character.role === 'custom' && character.customRoleTitle ? character.customRoleTitle : (roleMeta?.title || 'Не выбран')}
+Главная способность: ${character.power || 'Не указана'}
+Цветовая палитра: ${character.appearance?.colorPalette?.name || 'Не выбрана'}
+Костюм: ${character.appearance?.outfit?.name || 'Не выбран'}${character.appearance?.outfit?.description ? ` (${character.appearance.outfit.description})` : ''}
+Аксессуар: ${character.appearance?.accessory?.name || 'Не выбран'}${character.appearance?.accessory?.description ? ` (${character.appearance.accessory.description})` : ''}
+Характер: ${character.appearance?.expression?.name || 'Не выбран'}
+Поза: ${character.appearance?.pose?.name || 'Стоит ровно (T-поза)'}
 Стиль: Stylized 3D Figurine
 
 -----------------------------------------------------
@@ -147,7 +147,7 @@ ${character.customPromptEn || 'Not specified'}
                 Главная способность:
               </span>
               <span className="text-sm font-black text-[#252735]">
-                {character.power}
+                {character.power || 'Не указана'}
               </span>
             </div>
 
@@ -157,7 +157,7 @@ ${character.customPromptEn || 'Not specified'}
                   Палитра:
                 </span>
                 <span className="text-xs font-bold text-[#252735]">
-                  {character.appearance.colorPalette.name}
+                  {character.appearance?.colorPalette?.name || 'Не выбрана'}
                 </span>
               </div>
 
@@ -166,7 +166,7 @@ ${character.customPromptEn || 'Not specified'}
                   Экипировка:
                 </span>
                 <span className="text-xs font-bold text-[#252735]">
-                  {character.appearance.outfit.name}
+                  {character.appearance?.outfit?.name || 'Не выбран'}
                 </span>
               </div>
 
@@ -175,7 +175,7 @@ ${character.customPromptEn || 'Not specified'}
                   Аксессуар:
                 </span>
                 <span className="text-xs font-bold text-[#252735]">
-                  {character.appearance.accessory.name}
+                  {character.appearance?.accessory?.name || 'Не выбран'}
                 </span>
               </div>
 
@@ -184,7 +184,7 @@ ${character.customPromptEn || 'Not specified'}
                   Поза:
                 </span>
                 <span className="text-xs font-bold text-[#252735]">
-                  {character.appearance.pose?.name || 'Стоит ровно (T-поза)'}
+                  {character.appearance?.pose?.name || 'Стоит ровно (T-поза)'}
                 </span>
               </div>
             </div>

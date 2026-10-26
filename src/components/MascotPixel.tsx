@@ -10,6 +10,7 @@ interface MascotPixelProps {
   tip?: string;
   className?: string;
   showHint?: boolean;
+  interactive?: boolean;
 }
 
 interface Particle {
@@ -42,6 +43,7 @@ export const MascotPixel: React.FC<MascotPixelProps> = ({
   tip,
   className = '',
   showHint = true,
+  interactive = true,
 }) => {
   const [customSpeech, setCustomSpeech] = useState<string | null>(null);
   const [lastPhraseIndex, setLastPhraseIndex] = useState<number>(-1);
@@ -57,6 +59,7 @@ export const MascotPixel: React.FC<MascotPixelProps> = ({
   };
 
   const handlePixelClick = () => {
+    if (!interactive) return;
     playClickSound();
 
     // 1. Pick a random phrase (different from current)
@@ -105,18 +108,26 @@ export const MascotPixel: React.FC<MascotPixelProps> = ({
       {/* Mascot Image Area with Visual Cue and Particle Effect */}
       <div className="flex flex-col items-center shrink-0">
         <div
-          onClick={handlePixelClick}
-          className="relative cursor-pointer transition-transform hover:scale-105 active:scale-95 group select-none"
-          title="Нажми на Пикса, чтобы услышать совет!"
-          style={{ cursor: 'pointer' }}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handlePixelClick();
-            }
-          }}
+          onClick={interactive ? handlePixelClick : undefined}
+          className={`relative select-none ${
+            interactive
+              ? 'cursor-pointer transition-transform hover:scale-105 active:scale-95 group'
+              : 'cursor-default'
+          }`}
+          title={interactive ? 'Нажми на Пикса, чтобы услышать совет!' : undefined}
+          style={{ cursor: interactive ? 'pointer' : 'default' }}
+          role={interactive ? 'button' : undefined}
+          tabIndex={interactive ? 0 : undefined}
+          onKeyDown={
+            interactive
+              ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handlePixelClick();
+                  }
+                }
+              : undefined
+          }
         >
           {/* Subtle glowing aura */}
           <div className="absolute inset-0 -m-2.5 rounded-full bg-gradient-to-tr from-[#B9F24D]/35 to-[#62C9F5]/35 blur-xl opacity-75 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -124,13 +135,15 @@ export const MascotPixel: React.FC<MascotPixelProps> = ({
           {/* Clean transparent container with soft natural drop shadow */}
           <div
             className="relative w-32 h-32 sm:w-44 sm:h-44 flex items-center justify-center select-none"
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: interactive ? 'pointer' : 'default' }}
           >
             <img
               src={getImageSrc()}
               alt="Пикс"
-              className="w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(37,39,53,0.2)] drop-shadow-[0_4px_14px_rgba(98,201,245,0.35)] transition-transform duration-300 group-hover:rotate-1"
-              style={{ cursor: 'pointer' }}
+              className={`w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(37,39,53,0.2)] drop-shadow-[0_4px_14px_rgba(98,201,245,0.35)] transition-transform duration-300 ${
+                interactive ? 'group-hover:rotate-1' : ''
+              }`}
+              style={{ cursor: interactive ? 'pointer' : 'default' }}
               referrerPolicy="no-referrer"
             />
 
@@ -189,7 +202,7 @@ export const MascotPixel: React.FC<MascotPixelProps> = ({
         </div>
 
         {/* Mascot Hint with upward curved arrow directly below the chat bubble */}
-        {showHint && (
+        {showHint && interactive && (
           <div className="flex items-center gap-2 px-1 select-none pointer-events-none animate-pix-bob">
             {/* Playful curved arrow swooping up and left towards Pix */}
             <svg

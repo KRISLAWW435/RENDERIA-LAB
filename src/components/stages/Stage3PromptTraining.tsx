@@ -864,7 +864,13 @@ export const Stage3PromptTraining: React.FC<Stage3PromptTrainingProps> = ({
                 Посмотри, как твои выборы на Этапах 1 и 2 уже автоматически собрались по этим четырем правилам:
               </p>
               <div className="bg-white border-2 border-[#252735] rounded-xl p-3 font-mono text-xs sm:text-sm text-[#252735] leading-relaxed shadow-xs selection:bg-[#B9F24D]">
-                «{buildLiveUserPrompt({ ...character, hasLearnedStyle: true })}»
+                {buildLiveUserPrompt({ ...character, hasLearnedStyle: true }) ? (
+                  `«${buildLiveUserPrompt({ ...character, hasLearnedStyle: true })}»`
+                ) : (
+                  <span className="text-slate-400 italic font-sans text-xs">
+                    Твой промпт будет собираться здесь по мере того, как ты выбираешь детали для героя...
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -884,37 +890,13 @@ export const Stage3PromptTraining: React.FC<Stage3PromptTrainingProps> = ({
           <span>Назад: Внешность</span>
         </button>
 
-        {currentStep === 'finale' ? (
+        {currentStep === 'finale' && (
           <button
             onClick={handleFinish}
             className="btn-3d-lime flex items-center gap-2.5 px-8 py-4 rounded-2xl font-display font-black text-lg cursor-pointer border-2 border-[#252735]"
           >
             <span>Дальше: Собрать техзадание</span>
             <ArrowRight className="w-5 h-5 stroke-[3]" />
-          </button>
-        ) : (
-          <button
-            onClick={() => {
-              playClickSound();
-              if (currentStep === 'intro') setCurrentStep('step1');
-              else if (currentStep === 'step1') {
-                setStep1Solved(true);
-                setCurrentStep('step2');
-              } else if (currentStep === 'step2') {
-                setStep2Solved(true);
-                setCurrentStep('step3');
-              } else if (currentStep === 'step3') {
-                setStep3Solved(true);
-                setCurrentStep('step4');
-              } else if (currentStep === 'step4') {
-                setStep4Solved(true);
-                setCurrentStep('finale');
-              }
-            }}
-            className="btn-3d-sky flex items-center gap-2 px-6 py-3.5 rounded-2xl font-display font-black text-sm sm:text-base cursor-pointer border-2 border-[#252735]"
-          >
-            <span>{currentStep === 'intro' ? 'Начать тренировку' : 'Пропустить шаг'}</span>
-            <ArrowRight className="w-4 h-4 stroke-[3]" />
           </button>
         )}
       </div>

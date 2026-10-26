@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { CharacterData, VisualStyleId } from '../../types/avatar';
-import { VISUAL_STYLES, buildSynthesizedPrompt } from '../../data/labData';
+import { CharacterData } from '../../types/avatar';
+import { buildSynthesizedPrompt, sanitizePromptRu } from '../../data/labData';
 import { MascotPixel } from '../MascotPixel';
-import { playClickSound, playSuccessSound, playSelectSound } from '../../services/soundEffects';
-import { ArrowRight, ArrowLeft, Copy, Check, RotateCcw, Languages, Sparkles } from 'lucide-react';
+import { playClickSound, playSuccessSound } from '../../services/soundEffects';
+import { ArrowRight, ArrowLeft, Copy, Check, RotateCcw, Sparkles } from 'lucide-react';
 
 interface Stage4PromptAssemblyProps {
   character: CharacterData;
@@ -20,56 +20,61 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
 }) => {
   const [lang, setLang] = useState<'ru' | 'en'>('ru');
   const [copied, setCopied] = useState(false);
-  const [selectedStyle, setSelectedStyle] = useState<VisualStyleId>(character.style || 'roblox_3d');
 
-  // Compute synthesized prompts
+  // Compute synthesized prompts (hardcoded to Roblox 3D style)
   const synthesized = buildSynthesizedPrompt(
     character.name,
     character.role,
     character.power,
-    selectedStyle,
+    'roblox_3d',
     character.appearance,
     character.customRoleTitle
   );
 
-  const [promptTextRu, setPromptTextRu] = useState(
-    character.customPromptRu || synthesized.ru
-  );
-  const [promptTextEn, setPromptTextEn] = useState(
+  const [promptTextRu, setPromptTextRu] = useState<string>(() => {
+    if (character.isPromptCustomized && character.customPromptRu) {
+      return sanitizePromptRu(character.customPromptRu);
+    }
+    return sanitizePromptRu(synthesized.ru);
+  });
+
+  const [promptTextEn, setPromptTextEn] = useState<string>(
     character.customPromptEn || synthesized.en
   );
 
   const isCustomized = character.isPromptCustomized;
+  const hasBasicSelections = Boolean(character.role && character.power?.trim());
+
+  useEffect(() => {
+    if (!character.isPromptCustomized) {
+      const synth = buildSynthesizedPrompt(
+        character.name,
+        character.role,
+        character.power,
+        'roblox_3d',
+        character.appearance,
+        character.customRoleTitle
+      );
+      setPromptTextRu(sanitizePromptRu(synth.ru));
+      setPromptTextEn(synth.en);
+    } else if (character.customPromptRu) {
+      const cleaned = sanitizePromptRu(character.customPromptRu);
+      if (cleaned !== promptTextRu) {
+        setPromptTextRu(cleaned);
+      }
+    }
+  }, [character]);
 
   const currentDisplayPrompt = lang === 'ru' ? promptTextRu : promptTextEn;
 
-  const handleStyleChange = (styleId: VisualStyleId) => {
-    setSelectedStyle(styleId);
-    playSelectSound();
-    const newSynth = buildSynthesizedPrompt(
-      character.name,
-      character.role,
-      character.power,
-      styleId,
-      character.appearance,
-      character.customRoleTitle
-    );
-    setPromptTextRu(newSynth.ru);
-    setPromptTextEn(newSynth.en);
-    onUpdate({
-      style: styleId,
-      customPromptRu: newSynth.ru,
-      customPromptEn: newSynth.en,
-    });
-  };
-
   const handleTextChange = (newVal: string) => {
     if (lang === 'ru') {
-      setPromptTextRu(newVal);
-      onUpdate({ customPromptRu: newVal, isPromptCustomized: true });
+      const sanitized = sanitizePromptRu(newVal);
+      setPromptTextRu(sanitized);
+      onUpdate({ customPromptRu: sanitized, isPromptCustomized: true, style: 'roblox_3d' });
     } else {
       setPromptTextEn(newVal);
-      onUpdate({ customPromptEn: newVal, isPromptCustomized: true });
+      onUpdate({ customPromptEn: newVal, isPromptCustomized: true, style: 'roblox_3d' });
     }
   };
 
@@ -79,20 +84,23 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
       character.name,
       character.role,
       character.power,
-      selectedStyle,
+      'roblox_3d',
       character.appearance,
       character.customRoleTitle
     );
-    setPromptTextRu(newSynth.ru);
+    const cleanedRu = sanitizePromptRu(newSynth.ru);
+    setPromptTextRu(cleanedRu);
     setPromptTextEn(newSynth.en);
     onUpdate({
-      customPromptRu: newSynth.ru,
+      style: 'roblox_3d',
+      customPromptRu: cleanedRu,
       customPromptEn: newSynth.en,
       isPromptCustomized: false,
     });
   };
 
   const handleCopy = async () => {
+    if (!currentDisplayPrompt) return;
     playSuccessSound();
     try {
       await navigator.clipboard.writeText(currentDisplayPrompt);
@@ -114,8 +122,8 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
   const handleContinue = () => {
     playSuccessSound();
     onUpdate({
-      style: selectedStyle,
-      customPromptRu: promptTextRu,
+      style: 'roblox_3d',
+      customPromptRu: sanitizePromptRu(promptTextRu),
       customPromptEn: promptTextEn,
     });
     onNext();
@@ -123,58 +131,15 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
 
   return (
     <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 space-y-6">
-      {/* Mascot Guidance */}
+      {/* Mascot Guidance with no click interaction, no green arrow hint, and updated educational tip */}
       <div className="bg-white border-2 border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs">
         <MascotPixel
           mood="celebrate"
           speechText="Этап 4: Мы собрали настоящее техническое задание! Все твои выборы объединены в цельный промпт. Скопируй его и подготовься к запуску генератора!"
-          tip="Генераторы вроде DALL-E и Midjourney лучше всего понимают английский текст, поэтому мы подготовили оба варианта!"
+          tip="Большая часть нейросетей лучше всего понимают английский текст, поэтому мы подготовили оба варианта!"
+          showHint={false}
+          interactive={false}
         />
-      </div>
-
-      {/* Visual Style Selector */}
-      <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display font-black text-lg text-[#252735]">
-            Выбери финальный стиль рендера
-          </h3>
-          <span className="text-xs font-bold text-slate-500">
-            Определяет фактуру и материалы
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {VISUAL_STYLES.map((st) => {
-            const isSelected = selectedStyle === st.id;
-            return (
-              <div
-                key={st.id}
-                onClick={() => handleStyleChange(st.id)}
-                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                  isSelected
-                    ? 'border-[#252735] bg-[#B9F24D]/20 shadow-sm'
-                    : 'border-slate-200 hover:border-slate-300 bg-slate-50'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="font-black text-sm text-[#252735] first-letter:uppercase">
-                      {st.name}
-                    </span>
-                    {isSelected && (
-                      <span className="w-5 h-5 rounded-full bg-[#B9F24D] border border-[#252735] flex items-center justify-center text-[#252735]">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    {st.description}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* Prompt Laboratory Terminal */}
@@ -244,8 +209,8 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
             value={currentDisplayPrompt}
             onChange={(e) => handleTextChange(e.target.value)}
             rows={7}
-            className="w-full bg-slate-900/90 text-slate-100 font-mono text-xs sm:text-sm p-4 rounded-2xl border border-slate-700 focus:border-[#B9F24D] focus:outline-none leading-relaxed resize-y"
-            placeholder="Текст промпта..."
+            className="w-full bg-slate-900/90 text-slate-100 font-mono text-xs sm:text-sm p-4 rounded-2xl border border-slate-700 focus:border-[#B9F24D] focus:outline-none leading-relaxed resize-y placeholder:text-slate-500 placeholder:italic placeholder:font-sans"
+            placeholder="Твой промпт будет собираться здесь по мере того, как ты выбираешь детали для героя..."
           />
         </div>
 
@@ -259,26 +224,32 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
             )}
           </div>
 
-          <button
-            onClick={handleCopy}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-display font-black text-sm cursor-pointer transition-all ${
-              copied
-                ? 'bg-emerald-500 text-white shadow-lg'
-                : 'btn-3d-lime border border-[#B9F24D]'
-            }`}
-          >
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 stroke-[3]" />
-                <span>Скопировано в буфер!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4" />
-                <span>Скопировать промпт</span>
-              </>
-            )}
-          </button>
+          {hasBasicSelections && currentDisplayPrompt.trim().length > 0 ? (
+            <button
+              onClick={handleCopy}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-display font-black text-sm cursor-pointer transition-all ${
+                copied
+                  ? 'bg-emerald-500 text-white shadow-lg'
+                  : 'btn-3d-lime border border-[#B9F24D]'
+              }`}
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>Скопировано в буфер!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Скопировать промпт</span>
+                </>
+              )}
+            </button>
+          ) : (
+            <span className="text-xs font-bold text-amber-400/90 bg-amber-400/10 px-3 py-1.5 rounded-xl border border-amber-400/20">
+              💡 Выбери класс и способность героя на Этапе 1, чтобы скопировать промпт
+            </span>
+          )}
         </div>
       </div>
 
@@ -313,7 +284,7 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
               ✓
             </span>
             <span className="text-xs font-bold text-emerald-900">
-              Стиль выбран
+              Стиль: Roblox
             </span>
           </div>
 
