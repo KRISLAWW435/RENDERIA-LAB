@@ -23,6 +23,12 @@ export const ASSETS = {
   accDroneSphere: '/src/assets/images/acc_drone_sphere_1792783145273.jpg',
   accEnergyBlades: '/src/assets/images/acc_energy_blades_1792783146549.jpg',
   accCyberWings: '/src/assets/images/acc_cyber_wings_1792783688879.jpg',
+  starGlasses: '/src/assets/images/star_glasses_1792999476154.jpg',
+  heartGlasses: '/src/assets/images/heart_glasses_1792999492193.jpg',
+  neonCrown: '/src/assets/images/neon_crown_1792999507768.jpg',
+  propellerHat: '/src/assets/images/propeller_hat_1792999521493.jpg',
+  cyberHeadphones: '/src/assets/images/cyber_headphones_antenna_1793000367539.jpg',
+  wizardHat: '/src/assets/images/wizard_hat_1792999549301.jpg',
   accMagicStaff: '/src/assets/images/acc_magic_staff_1792783689708.jpg',
   gearGlowSneakers: '/src/assets/images/gear_glow_sneakers_1792783146398.jpg',
   gearStarBadge: '/src/assets/images/gear_star_badge_1792783146561.jpg',
@@ -56,37 +62,51 @@ export const ASSETS = {
   poseVictory: '/src/assets/images/pose_victory_1792915606545.jpg',
   poseCrossedArms: '/src/assets/images/pose_crossed_arms_1792915616529.jpg',
   poseJump: '/src/assets/images/pose_jump_1792915627631.jpg',
+  certificateBg: '/src/assets/images/certificate_bg_1793000138165.jpg',
+  certGameBg: '/src/assets/images/cert_game_bg_1793001214533.jpg',
+  certificatePng: '/src/assets/images/certificate.png',
+  goldSeal: '/src/assets/images/gold_seal_1793000149791.jpg',
+  printSeal: '/src/assets/images/print.png',
+  signatureImg: '/src/assets/images/signature.png',
 };
 
 // External AI Image Generator Services (Single configuration point)
 export const EXTERNAL_IMAGE_GENERATORS = [
   {
+    id: 'google_flow',
+    name: 'Google Flow',
+    url: 'https://flow.google.com/',
+    description:
+      'Бесплатная генерация изображений с помощью моделей Imagen и Nano Banana. Позволяет не только создавать, но и редактировать картинки прямо в браузере.',
+    color: '#B9F24D',
+    isRecommended: true,
+  },
+  {
+    id: 'qwen_chat',
+    name: 'Qwen Chat',
+    url: 'https://chat.qwen.ai/',
+    description:
+      'Бесплатный доступ к мощной модели Qwen-Image. Отлично понимает длинные промпты и точно передаёт детали.',
+    color: '#62C9F5',
+    isRecommended: false,
+  },
+  {
     id: 'bing',
     name: 'Bing Image Creator (DALL-E 3)',
     url: 'https://www.bing.com/images/create',
-    description: 'Бесплатный генератор от Microsoft, отлично понимает сложные промпты',
-    color: '#62C9F5',
-  },
-  {
-    id: 'recraft',
-    name: 'Recraft AI',
-    url: 'https://www.recraft.ai/',
-    description: 'Специализирован на 3D-иконках, векторной графике и чистых фонах',
-    color: '#B9F24D',
+    description:
+      'Бесплатный генератор от Microsoft на базе DALL-E 3. Хорошо справляется со сложными и точными описаниями.',
+    color: '#BDA7FF',
+    isRecommended: false,
   },
   {
     id: 'leonardo',
     name: 'Leonardo.Ai',
     url: 'https://leonardo.ai/',
-    description: 'Популярен среди геймдев-дизайнеров для создания игровых персонажей',
-    color: '#BDA7FF',
-  },
-  {
-    id: 'ideogram',
-    name: 'Ideogram',
-    url: 'https://ideogram.ai/',
-    description: 'Точно следует стилю персонажей и пропорциям',
+    description:
+      'Популярен среди гейм-дизайнеров. Специализируется на 3D-иконках, игровых ассетах и текстурах.',
     color: '#FFB9D5',
+    isRecommended: false,
   },
 ];
 
@@ -383,39 +403,63 @@ export const OUTFITS = [
 export const ACCESSORIES = [
   {
     id: 'visor_helmet',
-    name: 'Голо-визор',
+    name: 'Светящийся голо-визор',
     description: 'Светящийся экран с интерфейсом и эмоциями',
     image: ASSETS.accHoloVisor,
   },
   {
     id: 'jetpack',
-    name: 'Реактивный джетпак',
+    name: 'Реактивный джетпак с пламенем',
     description: 'Компактный ранец со световым реактивным следом',
     image: ASSETS.accTwinJetpack,
   },
   {
-    id: 'plasma_cape',
-    name: 'Плащ',
-    description: 'Неоновый парящий плащ с мягким сиянием',
-    image: ASSETS.gearPlasmaCape,
-  },
-  {
     id: 'energy_bracers',
-    name: 'Наручи',
+    name: 'Боевые наручи с энергетическими клинками',
     description: 'Боевые наручи со световыми защитными щитками',
     image: ASSETS.accEnergyBlades,
   },
   {
     id: 'cyber_wings',
-    name: 'Крылья',
+    name: 'Светящиеся крылья феи',
     description: 'Голографические полупрозрачные крылья за спиной',
     image: ASSETS.accCyberWings,
   },
   {
-    id: 'cyber_helmet',
-    name: 'Шлем',
-    description: 'Защитный футуристический шлем с золотым гребнем',
-    image: ASSETS.accCyberHelmet,
+    id: 'star_glasses',
+    name: 'Звездные очки',
+    description: 'Стильные золотые очки в форме сияющих звезд',
+    image: ASSETS.starGlasses,
+  },
+  {
+    id: 'heart_glasses',
+    name: 'Очки в форме сердечек',
+    description: 'Яркие розовые очки в форме сердец с глянцем',
+    image: ASSETS.heartGlasses,
+  },
+  {
+    id: 'neon_crown',
+    name: 'Неоновая корона',
+    description: 'Королевская корона из золота и бирюзового неона',
+    image: ASSETS.neonCrown,
+  },
+  {
+    id: 'propeller_hat',
+    name: 'Смешная шапка-пропеллер',
+    description: 'Разноцветная кепка с забавным вращающимся пропеллером',
+    image: ASSETS.propellerHat,
+  },
+  {
+    id: 'cyber_headphones',
+    name: 'Кибер-наушники с антеннами',
+    description: 'Футуристичные наушники со светящимися антеннами',
+    image: ASSETS.cyberHeadphones,
+  },
+  {
+    id: 'wizard_hat',
+    name: 'Волшебная шляпа звездочета',
+    description: 'Магический колпак с золотыми звездами и созвездиями',
+    image: ASSETS.wizardHat,
   },
 ];
 
@@ -535,16 +579,12 @@ export const VISUAL_STYLES: { id: VisualStyleId; name: string; description: stri
 export function buildSynthesizedPrompt(
   name?: string,
   roleId?: RoleId | null | '',
-  power?: string,
   styleId?: VisualStyleId,
   appearance?: AppearanceState | null,
   customRoleTitle?: string,
   hasLearnedStyle: boolean = true
 ): { ru: string; en: string } {
-  const charName = name?.trim();
-  const hasName = Boolean(charName);
   const hasRole = Boolean(roleId);
-  const hasPower = Boolean(power?.trim());
   const hasOutfit = Boolean(appearance?.outfit?.name?.trim());
   const hasAccessory = Boolean(appearance?.accessory?.name?.trim());
   const colors = resolvePaletteColors(appearance?.colorPalette);
@@ -553,21 +593,19 @@ export function buildSynthesizedPrompt(
   const hasPose = Boolean(appearance?.pose?.name?.trim());
 
   const hasAnyCategory =
-    hasRole || hasPower || hasOutfit || hasAccessory || hasColors || hasExpression || hasPose || hasName;
+    hasRole || hasOutfit || hasAccessory || hasColors || hasExpression || hasPose;
 
   if (!hasAnyCategory) {
     return { ru: '', en: '' };
   }
 
   let ru = 'Создай оригинального игрового персонажа. ';
-  if (hasName) ru += `Имя: ${charName}. `;
   if (hasRole) {
     const role = ROLES.find((r) => r.id === roleId);
     const roleTitleRu =
       roleId === 'custom' && customRoleTitle?.trim() ? customRoleTitle.trim() : (role?.title || 'Герой');
     ru += `Роль: ${roleTitleRu}. `;
   }
-  if (hasPower) ru += `Суперспособность: ${power!.trim()}. `;
   if (hasOutfit) ru += `Костюм: ${appearance!.outfit!.name.trim()}. `;
   if (hasAccessory) ru += `Аксессуар: ${appearance!.accessory!.name.trim()}. `;
   if (hasColors) ru += `Цвета костюма: ${colors.trim()}. `;
@@ -577,7 +615,7 @@ export function buildSynthesizedPrompt(
   ru += 'Покажи персонажа целиком на чистом изолированном белом фоне.';
 
   if (hasLearnedStyle) {
-    ru += ' Стиль Roblox.';
+    ru += ' Стиль: Roblox.';
   }
 
   // English prompt optimized for AI image models (DALL-E 3, Midjourney, Recraft, Leonardo)
@@ -590,11 +628,9 @@ export function buildSynthesizedPrompt(
   };
 
   let en = 'Create an original 3D game character. ';
-  if (hasName) en += `Name: ${charName}. `;
   if (hasRole && roleId) {
     en += `Role: ${roleEnglishMap[roleId] || 'Hero'}. `;
   }
-  if (hasPower) en += `Superpower: ${power!.trim()}. `;
   if (hasOutfit) en += `Costume: ${appearance!.outfit!.name.trim()}. `;
   if (hasAccessory) en += `Accessory: ${appearance!.accessory!.name.trim()}. `;
   if (hasColors) en += `Colors: ${colors.trim()}. `;
@@ -615,28 +651,37 @@ export function buildSynthesizedPrompt(
  * Ensures Russian prompt strings strictly conform to specification:
  * - "Цвета костюма: ..." instead of "Цвета: ..." or "Цвета: Мой цвет (...)"
  * - "на чистом изолированном белом фоне" instead of "на чистом светлом фоне"
- * - "Стиль Roblox."
+ * - "Стиль: Roblox."
  */
 export function sanitizePromptRu(prompt?: string | null): string {
   if (!prompt) return '';
   return prompt
+    .replace(/Имя:\s*[^.]*\.\s*/gi, '')
+    .replace(/Суперспособность:\s*[^.]*\.\s*/gi, '')
+    .replace(/Аксессуар:\s*Голо-визор\./gi, 'Аксессуар: Светящийся голо-визор.')
+    .replace(/Аксессуар:\s*Реактивный джетпак\./gi, 'Аксессуар: Реактивный джетпак с пламенем.')
+    .replace(/Аксессуар:\s*Плащ\./gi, 'Аксессуар: Светящийся энергетический плащ.')
+    .replace(/Аксессуар:\s*Наручи\./gi, 'Аксессуар: Боевые наручи с энергетическими клинками.')
+    .replace(/Аксессуар:\s*Крылья\./gi, 'Аксессуар: Светящиеся крылья феи.')
+    .replace(/Аксессуар:\s*Шлем\./gi, 'Аксессуар: Футуристичный шлем с визором.')
     .replace(/Цвета:\s*(?:Мой цвет|Свой цвет)?\s*\((.*?)\)/gi, 'Цвета костюма: $1')
     .replace(/Цвета:\s*(?:Мой цвет|Свой цвет)\s*/gi, 'Цвета костюма: ')
     .replace(/Цвета:\s*/gi, 'Цвета костюма: ')
     .replace(/Цвета костюма:\s*(?:Мой цвет|Свой цвет)\s*\((.*?)\)/gi, 'Цвета костюма: $1')
     .replace(/Цвета костюма:\s*(?:Мой цвет|Свой цвет)\s*/gi, 'Цвета костюма: ')
     .replace(/на чистом светлом фоне/gi, 'на чистом изолированном белом фоне')
-    .replace(/Стиль:\s*стиль\s+Roblox\.?/gi, 'Стиль Roblox.')
-    .replace(/Стиль:\s*Roblox\.?/gi, 'Стиль Roblox.')
-    .replace(/Стиль:\s*виниловая 3D-фигурка\.?/gi, 'Стиль Roblox.')
-    .replace(/Стиль:\s*футуристический кибер-стиль\.?/gi, 'Стиль Roblox.')
+    .replace(/Стиль:\s*стиль\s+Roblox\.?/gi, 'Стиль: Roblox.')
+    .replace(/Стиль:\s*Roblox\.?/gi, 'Стиль: Roblox.')
+    .replace(/Стиль\s+Roblox\.?/gi, 'Стиль: Roblox.')
+    .replace(/Стиль:\s*виниловая 3D-фигурка\.?/gi, 'Стиль: Roblox.')
+    .replace(/Стиль:\s*футуристический кибер-стиль\.?/gi, 'Стиль: Roblox.')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
 /**
  * Dynamic "Мой промпт" (Live Prompt Builder)
- * Automatically updates as the child selects role, power, colors, suit, accessory, trait, and pose in Stages 1 & 2.
+ * Automatically updates as the child selects role, colors, suit, accessory, trait, and pose in Stages 1 & 2.
  * Follows conditional puzzle logic: only appends text for categories that have been chosen.
  * If nothing selected yet, returns an empty string.
  */
@@ -644,31 +689,26 @@ export function buildLiveUserPrompt(character: {
   role?: RoleId | null | '';
   customRoleTitle?: string;
   name?: string;
-  power?: string;
   style?: VisualStyleId;
   appearance?: AppearanceState | null;
   hasLearnedStyle?: boolean;
 }): string {
   const hasRole = Boolean(character.role);
-  const hasPower = Boolean(character.power?.trim());
   const hasOutfit = Boolean(character.appearance?.outfit?.name?.trim());
   const hasAccessory = Boolean(character.appearance?.accessory?.name?.trim());
   const colors = resolvePaletteColors(character.appearance?.colorPalette);
   const hasColors = Boolean(colors?.trim());
   const hasExpression = Boolean(character.appearance?.expression?.name?.trim());
   const hasPose = Boolean(character.appearance?.pose?.name?.trim());
-  const charName = character.name?.trim();
-  const hasName = Boolean(charName);
 
   const hasAnyCategory =
-    hasRole || hasPower || hasOutfit || hasAccessory || hasColors || hasExpression || hasPose || hasName;
+    hasRole || hasOutfit || hasAccessory || hasColors || hasExpression || hasPose;
 
   if (!hasAnyCategory) {
     return '';
   }
 
   let prompt = 'Создай оригинального игрового персонажа. ';
-  if (hasName) prompt += `Имя: ${charName}. `;
   if (hasRole) {
     const roleMeta = ROLES.find((r) => r.id === character.role);
     const roleTitle =
@@ -677,7 +717,6 @@ export function buildLiveUserPrompt(character: {
         : (roleMeta?.title || 'Герой');
     prompt += `Роль: ${roleTitle}. `;
   }
-  if (hasPower) prompt += `Суперспособность: ${character.power!.trim()}. `;
   if (hasOutfit) prompt += `Костюм: ${character.appearance!.outfit!.name.trim()}. `;
   if (hasAccessory) prompt += `Аксессуар: ${character.appearance!.accessory!.name.trim()}. `;
   if (hasColors) prompt += `Цвета костюма: ${colors.trim()}. `;
@@ -687,7 +726,7 @@ export function buildLiveUserPrompt(character: {
   prompt += 'Покажи персонажа целиком на чистом изолированном белом фоне.';
 
   if (character.hasLearnedStyle) {
-    prompt += ' Стиль Roblox.';
+    prompt += ' Стиль: Roblox.';
   }
 
   return sanitizePromptRu(prompt);

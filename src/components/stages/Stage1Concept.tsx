@@ -20,7 +20,6 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
   const [selectedRole, setSelectedRole] = useState<RoleId | null>(character.role || null);
   const [heroName, setHeroName] = useState(character.name || '');
   const [customRoleTitle, setCustomRoleTitle] = useState(character.customRoleTitle || '');
-  const [heroPower, setHeroPower] = useState(character.power || '');
 
   const currentRoleMeta = selectedRole ? (ROLES.find((r) => r.id === selectedRole) || ROLES[0]) : null;
 
@@ -28,12 +27,6 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
     setSelectedRole(roleId);
     playSelectSound();
     onUpdate({ role: roleId });
-  };
-
-  const handlePowerPreset = (powerText: string) => {
-    playClickSound();
-    setHeroPower(powerText);
-    onUpdate({ power: powerText });
   };
 
   const handleNameChange = (nameText: string) => {
@@ -52,24 +45,19 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
       role: selectedRole,
       customRoleTitle: selectedRole === 'custom' ? customRoleTitle.trim() : undefined,
       name: heroName.trim(),
-      power: heroPower.trim(),
     });
     onNext();
   };
 
-  const isCustomSuperpower =
-    heroPower.trim().length > 0 &&
-    (!currentRoleMeta || !currentRoleMeta.suggestedPowers.some((p) => p.trim() === heroPower.trim()));
-
   // Mascot dynamic speech text reacting to user choices
   const getPixelSpeech = () => {
     if (!selectedRole) {
-      return '«Привет! Я Пикс — твой помощник. Выбери класс персонажа, настрой суперсилу и дай ему имя!»';
+      return '«Привет! Я Пикс — твой помощник. Выбери класс персонажа и дай ему имя в панели справа!»';
     }
     if (selectedRole === 'custom') {
       return customRoleTitle.trim()
-        ? `«Класс «${customRoleTitle.trim()}» — звучит великолепно! Теперь выбери имя и суперсилу в панели справа!»`
-        : '«Отличный выбор! Введи название своего класса в панели справа и настрой способность!»';
+        ? `«Класс «${customRoleTitle.trim()}» — звучит великолепно! Теперь укажи имя героя!»`
+        : '«Отличный выбор! Введи название своего класса и имя персонажа в панели справа!»';
     }
     switch (selectedRole) {
       case 'cosmic_explorer':
@@ -81,7 +69,7 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
       case 'fantasy_traveler':
         return '«Древняя магия! Парящий диск и кристаллический посох придадут герою загадочности!»';
       default:
-        return '«Выбери класс своего героя, настрой его суперсилу и дай ему имя!»';
+        return '«Выбери класс своего героя и дай ему имя в панели справа!»';
     }
   };
 
@@ -343,66 +331,37 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
               </p>
             </div>
 
-            {/* Hero Power Input */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-600">
-                  Главная суперспособность:
-                </label>
-                {isCustomSuperpower && (
-                  <span className="text-[10px] font-extrabold text-[#62C9F5] bg-[#62C9F5]/10 px-2 py-0.5 rounded-md border border-[#62C9F5]/30">
-                    ✏️ Своя способность
+            {/* Selected Role Summary Preview Card */}
+            {selectedRole && (
+              <div className="p-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 flex items-center gap-3.5">
+                <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-[#252735] bg-white shrink-0 shadow-2xs">
+                  {currentRoleMeta?.image ? (
+                    <img
+                      src={currentRoleMeta.image}
+                      alt={currentRoleMeta.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl bg-[#BDA7FF]/30">
+                      ✨
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                    Выбранный класс
                   </span>
-                )}
+                  <span className="font-display font-black text-sm text-[#252735] block truncate">
+                    {selectedRole === 'custom'
+                      ? (customRoleTitle.trim() || 'Свой вариант')
+                      : currentRoleMeta?.title}
+                  </span>
+                  <span className="text-xs text-slate-500 line-clamp-1">
+                    {heroName.trim() ? `Герой: «${heroName.trim()}»` : 'Имя ещё не задано'}
+                  </span>
+                </div>
               </div>
-              <input
-                type="text"
-                value={heroPower}
-                onChange={(e) => {
-                  setHeroPower(e.target.value);
-                  onUpdate({ power: e.target.value });
-                }}
-                placeholder="Например: Управляет гравитацией"
-                className="w-full px-3.5 py-2.5 rounded-2xl border-2 border-slate-200 focus:border-[#B9F24D] focus:ring-4 focus:ring-[#B9F24D]/20 focus:outline-none font-bold text-sm sm:text-base text-[#252735] bg-slate-50 focus:bg-white transition-all shadow-inner"
-              />
-            </div>
-
-            {/* Quick Superpower Idea Chips (7 variety options) */}
-            <div className="space-y-1.5 pt-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500 block">
-                  Готовые способности:
-                </span>
-                <span className="text-[10px] font-bold text-slate-400">
-                  Нажми для выбора
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pr-1">
-                {currentRoleMeta ? (
-                  currentRoleMeta.suggestedPowers.map((idea) => {
-                    const isActive = heroPower.trim() === idea.trim();
-                    return (
-                      <button
-                        key={idea}
-                        type="button"
-                        onClick={() => handlePowerPreset(idea)}
-                        className={`text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition-all border cursor-pointer select-none text-left leading-tight ${
-                          isActive
-                            ? 'bg-[#B9F24D] text-[#252735] border-[#252735] shadow-xs scale-102 ring-2 ring-[#B9F24D]/40'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
-                        }`}
-                      >
-                        ⚡️ {idea}
-                      </button>
-                    );
-                  })
-                ) : (
-                  <div className="w-full p-3 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-500 font-medium">
-                    👈 Сначала выбери класс персонажа слева, чтобы открыть список способностей
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
 
             {/* Next Step CTA Button */}
             <button
@@ -457,7 +416,6 @@ export const Stage1Concept: React.FC<Stage1ConceptProps> = ({
           role: selectedRole,
           customRoleTitle: selectedRole === 'custom' ? customRoleTitle : undefined,
           name: heroName,
-          power: heroPower,
         }}
       />
     </div>

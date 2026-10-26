@@ -208,8 +208,8 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
       case 'accessory':
         return {
           speech:
-            'Аксессуар — визитная карточка персонажа! Двухтурбинный джетпак или голо-визор сразу приковывают внимание!',
-          tip: 'Один крупный запоминающийся предмет работает в концепте лучше, чем десяток мелких деталей!',
+            'Аксессуар — визитная карточка персонажа! Звездные очки, реактивный джетпак или неоновая корона сразу приковывают внимание!',
+          tip: 'Выбирай из 10 ярких предметов или придумай свой в поле «Свой вариант»!',
         };
       case 'expression':
         return {
@@ -643,7 +643,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
               </div>
             )}
 
-            {/* 3. ACCESSORIES (6 3D Pixar Accessories + 7th Custom Card with Improved Text Input) */}
+            {/* 3. ACCESSORIES (10 3D Pixar Accessories + Custom Card with Improved Text Input) */}
             {activeTab === 'accessory' && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -651,7 +651,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                     Аксессуар и экипировка
                   </h3>
                   <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-                    6 аксессуаров + свой вариант
+                    10 аксессуаров + свой вариант
                   </span>
                 </div>
 
@@ -689,7 +689,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                         </div>
 
                         {/* Accessory Short Title with Safe Multi-line Wrap */}
-                        <div className="mt-2 text-center w-full px-1 min-h-[2.25rem] flex items-center justify-center">
+                        <div className="mt-2 text-center w-full px-1 min-h-[2.5rem] flex items-center justify-center">
                           <span className="font-display font-black text-xs sm:text-sm text-[#252735] block line-clamp-2 leading-snug break-words">
                             {acc.name}
                           </span>
@@ -698,7 +698,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
                     );
                   })}
 
-                  {/* 7th Card: "Свой вариант" with Creative Icon and Improved Text Input */}
+                  {/* 11th Card: "Свой вариант" with Creative Icon and Improved Text Input */}
                   {(() => {
                     const isCustomSelected = appearance.accessory?.id === 'custom_accessory';
                     return (

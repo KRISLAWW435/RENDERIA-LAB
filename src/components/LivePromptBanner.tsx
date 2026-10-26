@@ -21,7 +21,7 @@ export const LivePromptBanner: React.FC<LivePromptBannerProps> = ({
   const [isExpanded, setIsExpanded] = useState(!compact);
 
   const promptText = buildLiveUserPrompt(character);
-  const hasBasicSelections = Boolean(character.role && character.power?.trim());
+  const hasBasicSelections = Boolean(character.role);
   const isEmptyPrompt = !promptText || promptText.trim().length === 0;
 
   const handleCopy = (e: React.MouseEvent) => {
@@ -44,7 +44,6 @@ export const LivePromptBanner: React.FC<LivePromptBannerProps> = ({
         ? ROLES.find((r) => r.id === character.role)?.title || null
         : null;
 
-  const powerValue = character.power?.trim() || null;
   const outfitValue = character.appearance?.outfit?.name?.trim() || null;
   const accessoryValue = character.appearance?.accessory?.name?.trim() || null;
   const colorsValue = resolvePaletteColors(character.appearance?.colorPalette) || null;
@@ -56,7 +55,6 @@ export const LivePromptBanner: React.FC<LivePromptBannerProps> = ({
 
   const hasAnyTag = Boolean(
     roleValue ||
-    powerValue ||
     outfitValue ||
     accessoryValue ||
     colorsValue ||
@@ -84,6 +82,11 @@ export const LivePromptBanner: React.FC<LivePromptBannerProps> = ({
               <span className="font-display font-black text-xs sm:text-sm tracking-wide text-white">
                 Мой промпт для нейросети
               </span>
+              {character.name?.trim() && (
+                <span className="text-[11px] font-bold text-slate-300">
+                  (Проект: {character.name.trim()})
+                </span>
+              )}
               <span className="hidden sm:inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#B9F24D] text-[#252735]">
                 Живое обновление
               </span>
@@ -95,7 +98,7 @@ export const LivePromptBanner: React.FC<LivePromptBannerProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Hide copy button until at least the basic role and superpower are selected */}
+          {/* Hide copy button until at least the basic role is selected */}
           {hasBasicSelections && !isEmptyPrompt && (
             <button
               type="button"
@@ -156,11 +159,6 @@ export const LivePromptBanner: React.FC<LivePromptBannerProps> = ({
               {roleValue && (
                 <span className="px-2 py-0.5 rounded-lg bg-sky-950/80 text-sky-300 border border-sky-800/60">
                   Роль: {roleValue}
-                </span>
-              )}
-              {powerValue && (
-                <span className="px-2 py-0.5 rounded-lg bg-amber-950/80 text-amber-300 border border-amber-800/60">
-                  Сила: {powerValue}
                 </span>
               )}
               {outfitValue && (

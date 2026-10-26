@@ -1,10 +1,31 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CharacterData, BadgeItem } from '../types/avatar';
 import { ASSETS, ROLES } from '../data/labData';
 import { MascotPixel } from './MascotPixel';
 import { playFanfareSound, playClickSound } from '../services/soundEffects';
 import confetti from 'canvas-confetti';
-import { Download, Award, Sparkles, RotateCcw, Share2, Check, Printer } from 'lucide-react';
+import {
+  Download,
+  Sparkles,
+  RotateCcw,
+  Loader2,
+  Edit3,
+  AlertCircle,
+  User,
+  Shield,
+  Shirt,
+  Glasses,
+  Box,
+  Palette,
+  Cpu,
+  Layers,
+  Award,
+} from 'lucide-react';
+import html2canvas from 'html2canvas-pro';
+
+import certificateBg from '../assets/images/certificate.png';
+import printImg from '../assets/images/print.png';
+import signatureImg from '../assets/images/signature.png';
 
 interface FinalAchievementProps {
   character: CharacterData;
@@ -15,85 +36,184 @@ interface FinalAchievementProps {
 
 export const FinalAchievement: React.FC<FinalAchievementProps> = ({
   character,
-  xp,
-  badges,
   onRestart,
 }) => {
+  const containerWrapperRef = useRef<HTMLDivElement>(null);
+  const certificateRef = useRef<HTMLDivElement>(null);
+  const [studentName, setStudentName] = useState('Юный дизайнер');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [previewScale, setPreviewScale] = useState(0.42);
+
   const roleMeta = ROLES.find((r) => r.id === character.role) || ROLES[0];
 
   useEffect(() => {
     playFanfareSound();
     try {
-      confetti({
-        particleCount: 80,
-        spread: 70,
+      const shoot = confetti.create(undefined, { resize: true, useWorker: false });
+      shoot({
+        particleCount: 90,
+        spread: 80,
         origin: { y: 0.6 },
-        colors: ['#B9F24D', '#62C9F5', '#FFB9D5', '#BDA7FF'],
+        colors: ['#B9F24D', '#62C9F5', '#FFB9D5', '#BDA7FF', '#FFD700'],
       });
     } catch {
-      // Ignore if canvas is unavailable
+      // Ignore if confetti is unavailable
     }
   }, []);
 
-  const handleDownloadTxt = () => {
+  // Responsive scaling for the 1792x2400 fixed canvas preview
+  useEffect(() => {
+    const updateScale = () => {
+      if (containerWrapperRef.current) {
+        const availWidth = containerWrapperRef.current.clientWidth;
+        // Cap max preview width on large screens to around 760px
+        const maxTargetWidth = Math.min(availWidth, 760);
+        const s = Math.max(0.18, maxTargetWidth / 1792);
+        setPreviewScale(s);
+      }
+    };
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+
+  const issueDate = new Date().toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const handleDownloadPng = async () => {
+    if (!certificateRef.current || isExporting) return;
+    setIsExporting(true);
+    setExportError(null);
     playClickSound();
-    const content = `=====================================================
-     АВАТАР-ЛАБОРАТОРИЯ RENDERIA: ПАСПОРТ ГЕРОЯ
-=====================================================
-Имя персонажа: ${character.name || 'Мой Герой'}
-Класс/Роль: ${character.role === 'custom' && character.customRoleTitle ? character.customRoleTitle : (roleMeta?.title || 'Не выбран')}
-Главная способность: ${character.power || 'Не указана'}
-Цветовая палитра: ${character.appearance?.colorPalette?.name || 'Не выбрана'}
-Костюм: ${character.appearance?.outfit?.name || 'Не выбран'}${character.appearance?.outfit?.description ? ` (${character.appearance.outfit.description})` : ''}
-Аксессуар: ${character.appearance?.accessory?.name || 'Не выбран'}${character.appearance?.accessory?.description ? ` (${character.appearance.accessory.description})` : ''}
-Характер: ${character.appearance?.expression?.name || 'Не выбран'}
-Поза: ${character.appearance?.pose?.name || 'Стоит ровно (T-поза)'}
-Стиль: Stylized 3D Figurine
 
------------------------------------------------------
-ТЕХНИЧЕСКОЕ ЗАДАНИЕ (ПРОМПТ ДЛЯ НЕЙРОСЕТИ):
------------------------------------------------------
-[РУССКИЙ]:
-${character.customPromptRu || 'Не сформирован'}
+    try {
+      const element = certificateRef.current;
 
-[ENGLISH (FOR AI GENERATORS)]:
-${character.customPromptEn || 'Not specified'}
+      // 1. Ensure all images inside the certificate are fully loaded and decoded
+      const images = Array.from(element.querySelectorAll('img'));
+      await Promise.all(
+        images.map(async (img) => {
+          if (!img.crossOrigin) {
+            img.crossOrigin = 'anonymous';
+          }
+          if (img.complete && img.naturalHeight !== 0) {
+            try {
+              await img.decode();
+            } catch {
+              // ignore decode error if already rendered
+            }
+            return;
+          }
+          await new Promise<void>((resolve) => {
+            img.onload = async () => {
+              try {
+                await img.decode();
+              } catch {
+                // ignore
+              }
+              resolve();
+            };
+            img.onerror = () => resolve();
+          });
+        })
+      );
 
------------------------------------------------------
-ДОСТИЖЕНИЯ В ЛАБОРАТОРИИ RENDERIA:
-Заработано очков опыта: ${xp} XP
-Получено навыков: 6 из 6
+      // 2. Wait 500ms before snapshot to guarantee DOM layout and rendering
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-Разработано в лаборатории RENDERIA (https://renderia.app)
-`;
+      // 3. Render with html2canvas (true 1792 x 2400 resolution)
+      const canvas = await html2canvas(element, {
+        scale: 1,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        logging: false,
+        width: 1792,
+        height: 2400,
+        windowWidth: 1792,
+        windowHeight: 2400,
+        scrollX: 0,
+        scrollY: 0,
+        onclone: (clonedDoc) => {
+          const clonedContainer = clonedDoc.getElementById('certificate-container');
+          if (clonedContainer) {
+            clonedContainer.style.transform = 'none';
+            if (clonedContainer.parentElement) {
+              clonedContainer.parentElement.style.transform = 'none';
+              clonedContainer.parentElement.style.width = '1792px';
+              clonedContainer.parentElement.style.height = '2400px';
+            }
+          }
+        },
+      });
 
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `renderia_${(character.name || 'hero').toLowerCase().replace(/\s+/g, '_')}_spec.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+      const dataUrl = canvas.toDataURL('image/png');
+
+      // 4. Trigger download using dynamic <a> tag
+      const link = document.createElement('a');
+      link.download = 'RENDERIA_Certificate.png';
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      playFanfareSound();
+    } catch (err) {
+      console.error('Ошибка при создании PNG сертификата:', err);
+      setExportError(
+        'Не удалось сформировать изображение сертификата. Пожалуйста, попробуйте еще раз.'
+      );
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  const handlePrint = () => {
-    playClickSound();
-    window.print();
-  };
+  const roleTitle =
+    character.role === 'custom' && character.customRoleTitle
+      ? character.customRoleTitle
+      : roleMeta.title;
+
+  const skillsData = [
+    {
+      name: '3D Моделирование',
+      Icon: Box,
+      barGradient: 'linear-gradient(90deg, #503CFA 0%, #62C9F5 100%)',
+    },
+    {
+      name: 'Креативность',
+      Icon: Palette,
+      barGradient: 'linear-gradient(90deg, #F59E0B 0%, #F97316 100%)',
+    },
+    {
+      name: 'Промпт-инжиниринг',
+      Icon: Cpu,
+      barGradient: 'linear-gradient(90deg, #06B6D4 0%, #503CFA 100%)',
+    },
+    {
+      name: 'Концепт-арт',
+      Icon: Layers,
+      barGradient: 'linear-gradient(90deg, #84CC16 0%, #10B981 100%)',
+    },
+  ];
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 space-y-8">
+    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-8">
       {/* Celebrating Banner */}
       <div className="text-center space-y-3">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#B9F24D] text-[#252735] font-black font-display text-sm uppercase tracking-wider shadow-xs">
           <Sparkles className="w-4 h-4" />
-          Лабораторный диплом выдан
+          Официальный сертификат готов
         </div>
         <h1 className="text-3xl sm:text-5xl font-black font-display text-[#252735] tracking-tight">
-          Готово! Ты создал концепцию своего 3D-персонажа!
+          Поздравляем с окончанием лаборатории!
         </h1>
         <p className="text-sm sm:text-base font-semibold text-slate-600 max-w-2xl mx-auto">
-          Ты прошёл путь от идеи до точного промпта и подготовил героя к жизни в 3D.
+          Ты успешно освоил все этапы создания игрового персонажа и готов применить навыки в реальном 3D-геймдеве!
         </p>
       </div>
 
@@ -101,166 +221,669 @@ ${character.customPromptEn || 'Not specified'}
       <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs">
         <MascotPixel
           mood="celebrate"
-          speechText={`Поздравляю, юный дизайнер! Твой герой «${character.name || 'Герой'}» спроектирован по всем правилам геймдева. Теперь ты умеешь объяснять искусственному интеллекту любые творческие задачи!`}
-          tip="Сохрани техническое задание в файл TXT, чтобы использовать промпт в любимых нейросетях в любое время!"
+          speechText={`Поздравляю, юный дизайнер! Твой герой «${
+            character.name || 'Герой'
+          }» спроектирован по всем канонам 3D-геймдева. Скачай свой именной сертификат от RENDERIA & KIBERONE в оригинальном качестве 1792x2400!`}
+          tip="Введи своё реальное имя в поле ниже, чтобы оно появилось на сертификате перед скачиванием."
         />
       </div>
 
-      {/* Main Diploma / Character Passport Card */}
-      <div className="bg-white border-3 border-[#252735] rounded-3xl p-6 sm:p-10 shadow-[0_8px_0_#252735] space-y-6 print:border-none print:shadow-none">
-        {/* Passport Top Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b-2 border-slate-200 pb-5 gap-4">
+      {/* Student Name Personalization Toolbar */}
+      <div className="bg-white border-2 border-[#252735] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_4px_0_#252735]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#62C9F5] text-[#252735] border border-[#252735] flex items-center justify-center font-bold text-lg shrink-0">
+            <Edit3 className="w-5 h-5" />
+          </div>
           <div>
-            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-              Сертификат цифрового дизайнера RENDERIA
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500 block">
+              Имя на сертификате
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black font-display text-[#252735]">
-              Паспорт персонажа: {character.name || 'Безымянный Герой'}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#252735] text-[#B9F24D] font-display font-black text-lg">
-            <span>{xp} XP</span>
+            <span className="text-sm font-black text-[#252735]">
+              Укажи своё имя и фамилию:
+            </span>
           </div>
         </div>
 
-        {/* Hero Visual & Key Stats Split */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-          {/* Hero Image Showcase (5 cols) */}
-          <div className="md:col-span-5 relative rounded-2xl overflow-hidden border-3 border-[#252735] shadow-sm bg-slate-50 aspect-square flex items-center justify-center">
+        <div className="w-full sm:w-auto flex items-center gap-2">
+          <input
+            type="text"
+            value={studentName}
+            onChange={(e) => setStudentName(e.target.value)}
+            placeholder="Юный дизайнер"
+            maxLength={32}
+            className="px-4 py-2.5 rounded-xl border-2 border-slate-300 focus:border-[#252735] focus:outline-hidden font-display font-bold text-base text-[#252735] w-full sm:w-72 bg-slate-50"
+          />
+        </div>
+      </div>
+
+      {/* Certificate Container: Clean layout, No outer box-shadow, No dark overlays, 100% Brightness */}
+      <div className="w-full flex justify-center overflow-x-auto pb-6">
+        <div
+          ref={containerWrapperRef}
+          className="relative flex justify-center items-start"
+          style={{
+            width: `${1792 * previewScale}px`,
+            height: `${2400 * previewScale}px`,
+            maxWidth: '100%',
+          }}
+        >
+          <div
+            ref={certificateRef}
+            id="certificate-container"
+            style={{
+              position: 'relative',
+              width: '1792px',
+              height: '2400px',
+              overflow: 'hidden',
+              userSelect: 'none',
+              transform: `scale(${previewScale})`,
+              transformOrigin: 'top left',
+              boxShadow: 'none',
+              border: 'none',
+              background: 'transparent',
+              fontFamily:
+                'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            }}
+          >
+            {/* certificate.png Full Background at 100% Brightness with NO dark gradient overlays */}
             <img
-              src={character.generatedImageUrl || ASSETS.robloxSampleHero}
-              alt="Финальный концепт героя"
-              className="w-full h-full object-contain select-none"
-              referrerPolicy="no-referrer"
+              src={certificateBg || ASSETS.certificatePng || '/certificate.png'}
+              alt="Certificate Background"
+              crossOrigin="anonymous"
+              loading="eager"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '1792px',
+                height: '2400px',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                pointerEvents: 'none',
+                userSelect: 'none',
+              }}
             />
-            <div className="absolute bottom-3 left-3 bg-[#252735]/85 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-full">
-              {character.role === 'custom' && character.customRoleTitle
-                ? character.customRoleTitle
-                : roleMeta.title}
-            </div>
-          </div>
 
-          {/* Details & Specifications (7 cols) */}
-          <div className="md:col-span-7 space-y-3">
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-              <span className="text-xs font-bold text-slate-500 block mb-0.5">
-                Главная способность:
-              </span>
-              <span className="text-sm font-black text-[#252735]">
-                {character.power || 'Не указана'}
-              </span>
-            </div>
+            {/* Character Frame Wrapper positioned exactly according to Figma specs:
+                position: absolute; left: 205px; top: 614px; width: 682px; height: 809px; */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '205px',
+                top: '614px',
+                width: '682px',
+                height: '809px',
+                borderRadius: '36px',
+                border: '3px solid rgba(255, 255, 255, 0.85)',
+                boxShadow:
+                  '0 0 45px rgba(80, 60, 250, 0.45), 0 0 25px rgba(98, 201, 245, 0.35), inset 0 0 30px rgba(255, 255, 255, 0.2)',
+                background:
+                  'radial-gradient(circle at center, rgba(80, 60, 250, 0.22) 0%, rgba(15, 23, 42, 0.5) 100%)',
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {/* Inner character image: width: 100%; height: 100%; object-fit: cover; aspect-ratio: 3 / 4;
+                  transparent background, no white box behind it */}
+              <img
+                src={character.generatedImageUrl || ASSETS.robloxSampleHero}
+                alt="Концепт персонажа"
+                crossOrigin="anonymous"
+                loading="eager"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  aspectRatio: '3 / 4',
+                  background: 'transparent',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                }}
+              />
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                <span className="text-xs font-bold text-slate-500 block mb-0.5">
-                  Палитра:
-                </span>
-                <span className="text-xs font-bold text-[#252735]">
-                  {character.appearance?.colorPalette?.name || 'Не выбрана'}
-                </span>
-              </div>
-
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                <span className="text-xs font-bold text-slate-500 block mb-0.5">
-                  Экипировка:
-                </span>
-                <span className="text-xs font-bold text-[#252735]">
-                  {character.appearance?.outfit?.name || 'Не выбран'}
-                </span>
-              </div>
-
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                <span className="text-xs font-bold text-slate-500 block mb-0.5">
-                  Аксессуар:
-                </span>
-                <span className="text-xs font-bold text-[#252735]">
-                  {character.appearance?.accessory?.name || 'Не выбран'}
-                </span>
-              </div>
-
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                <span className="text-xs font-bold text-slate-500 block mb-0.5">
-                  Поза:
-                </span>
-                <span className="text-xs font-bold text-[#252735]">
-                  {character.appearance?.pose?.name || 'Стоит ровно (T-поза)'}
-                </span>
-              </div>
-            </div>
-
-            {/* 3D Check passed stamp */}
-            <div className="p-3.5 rounded-2xl bg-[#B9F24D]/25 border border-[#B9F24D] flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#252735] text-[#B9F24D] flex items-center justify-center font-bold text-sm shrink-0">
-                ✓
-              </div>
-              <div>
-                <span className="text-xs font-black text-[#252735] block">
-                  Проверка требований к 3D пройдена
-                </span>
-                <span className="text-[11px] text-slate-700">
-                  Персонаж готов для загрузки в Tripo3D, Meshy и создания 3D-модели
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Earned Badges Section (NO bullet lists!) */}
-        <div className="pt-4 border-t-2 border-slate-200 space-y-3">
-          <h3 className="font-display font-black text-lg text-[#252735]">
-            Освоенные навыки и награды:
-          </h3>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {badges.map((b) => (
+              {/* Hero Name Badge at bottom of character frame */}
               <div
-                key={b.id}
-                className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-2.5"
+                style={{
+                  position: 'absolute',
+                  bottom: '24px',
+                  background: 'rgba(255, 255, 255, 0.96)',
+                  borderRadius: '20px',
+                  boxShadow: '0 6px 0 #D1D5DB, 0 10px 20px rgba(0, 0, 0, 0.2)',
+                  border: '2px solid #FFFFFF',
+                  padding: '12px 28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
               >
-                <div className="w-8 h-8 rounded-xl bg-[#B9F24D] text-[#252735] border border-[#252735] flex items-center justify-center font-bold text-xs shrink-0">
-                  ★
+                <Sparkles style={{ width: '22px', height: '22px', color: '#F59E0B' }} />
+                <span
+                  style={{
+                    fontFamily: 'system-ui, sans-serif',
+                    fontWeight: 900,
+                    fontSize: '22px',
+                    color: '#0F172A',
+                  }}
+                >
+                  «{character.name || 'Безымянный Герой'}»
+                </span>
+              </div>
+            </div>
+
+            {/* 2x2 Grid of 3D Info Cards on the Right side of the Character Frame */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '927px',
+                top: '614px',
+                width: '660px',
+                height: '809px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '24px',
+              }}
+            >
+              {/* 1. Name Card */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '32px',
+                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.15)',
+                  border: '2px solid rgba(255, 255, 255, 0.95)',
+                  padding: '28px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    width: '90px',
+                    height: '90px',
+                    borderRadius: '9999px',
+                    background: '#503CFA',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
+                    marginBottom: '18px',
+                  }}
+                >
+                  <User style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
                 </div>
-                <div>
-                  <span className="text-xs font-black text-[#252735] block leading-tight">
-                    {b.title}
-                  </span>
-                  <span className="text-[10px] text-emerald-700 font-bold">
-                    +{b.xp} XP
-                  </span>
+                <span
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#64748B',
+                  }}
+                >
+                  ЮНЫЙ ДИЗАЙНЕР
+                </span>
+                <span
+                  style={{
+                    fontSize: '25px',
+                    fontWeight: 900,
+                    color: '#0F172A',
+                    marginTop: '8px',
+                    lineHeight: 1.25,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  {studentName.trim() || 'Юный дизайнер'}
+                </span>
+              </div>
+
+              {/* 2. Role Card */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '32px',
+                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.15)',
+                  border: '2px solid rgba(255, 255, 255, 0.95)',
+                  padding: '28px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    width: '90px',
+                    height: '90px',
+                    borderRadius: '9999px',
+                    background: '#503CFA',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
+                    marginBottom: '18px',
+                  }}
+                >
+                  <Shield style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
+                </div>
+                <span
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#64748B',
+                  }}
+                >
+                  КЛАСС ГЕРОЯ
+                </span>
+                <span
+                  style={{
+                    fontSize: '25px',
+                    fontWeight: 900,
+                    color: '#0F172A',
+                    marginTop: '8px',
+                    lineHeight: 1.25,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  {roleTitle}
+                </span>
+              </div>
+
+              {/* 3. Suit Card */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '32px',
+                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.15)',
+                  border: '2px solid rgba(255, 255, 255, 0.95)',
+                  padding: '28px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    width: '90px',
+                    height: '90px',
+                    borderRadius: '9999px',
+                    background: '#503CFA',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
+                    marginBottom: '18px',
+                  }}
+                >
+                  <Shirt style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
+                </div>
+                <span
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#64748B',
+                  }}
+                >
+                  КОСТЮМ
+                </span>
+                <span
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 900,
+                    color: '#0F172A',
+                    marginTop: '8px',
+                    lineHeight: 1.25,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  {character.appearance?.outfit?.name || 'Базовый костюм'}
+                </span>
+              </div>
+
+              {/* 4. Accessory Card */}
+              <div
+                style={{
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '32px',
+                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.15)',
+                  border: '2px solid rgba(255, 255, 255, 0.95)',
+                  padding: '28px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                }}
+              >
+                <div
+                  style={{
+                    width: '90px',
+                    height: '90px',
+                    borderRadius: '9999px',
+                    background: '#503CFA',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
+                    marginBottom: '18px',
+                  }}
+                >
+                  <Glasses style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
+                </div>
+                <span
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#64748B',
+                  }}
+                >
+                  АКСЕССУАР
+                </span>
+                <span
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 900,
+                    color: '#0F172A',
+                    marginTop: '8px',
+                    lineHeight: 1.25,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  {character.appearance?.accessory?.name || 'Без аксессуара'}
+                </span>
+              </div>
+            </div>
+
+            {/* Wide Skills Container (Positioned below character and cards, slightly adjusted up) */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '205px',
+                top: '1463px',
+                width: '1382px',
+                height: '370px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '36px',
+                boxShadow: '0 12px 0 #D1D5DB, 0 18px 30px rgba(0, 0, 0, 0.15)',
+                border: '2px solid rgba(255, 255, 255, 0.95)',
+                padding: '36px 44px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  fontSize: '20px',
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  color: '#64748B',
+                }}
+              >
+                <Award style={{ width: '28px', height: '28px', color: '#503CFA' }} />
+                <span>ОСВОЕННЫЕ НАВЫКИ И КОМПЕТЕНЦИИ</span>
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '24px',
+                }}
+              >
+                {skillsData.map((skill, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      background: 'rgba(248, 250, 252, 0.95)',
+                      borderRadius: '24px',
+                      border: '2px solid #E2E8F0',
+                      padding: '20px 24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '20px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '9999px',
+                        background: '#503CFA',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        boxShadow: '0 4px 10px rgba(80, 60, 250, 0.3)',
+                      }}
+                    >
+                      <skill.Icon style={{ width: '32px', height: '32px', color: '#FFFFFF' }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '22px',
+                            fontWeight: 900,
+                            color: '#0F172A',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {skill.name}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '20px',
+                            fontWeight: 900,
+                            color: '#503CFA',
+                          }}
+                        >
+                          100%
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '16px',
+                          borderRadius: '9999px',
+                          background: '#E2E8F0',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: '9999px',
+                            background: skill.barGradient,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer Container with Date (Left), Enlarged Seal (Center), and Signature (Right) */}
+            <div
+              style={{
+                position: 'absolute',
+                left: '205px',
+                top: '1873px',
+                width: '1382px',
+                height: '260px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: '36px',
+                boxShadow: '0 12px 0 #D1D5DB, 0 18px 30px rgba(0, 0, 0, 0.15)',
+                border: '2px solid rgba(255, 255, 255, 0.95)',
+                padding: '24px 50px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              {/* Left: ONLY Issue Date */}
+              <div style={{ textAlign: 'left', minWidth: '320px' }}>
+                <span
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#64748B',
+                    display: 'block',
+                  }}
+                >
+                  ДАТА ВЫДАЧИ
+                </span>
+                <span
+                  style={{
+                    fontSize: '26px',
+                    fontWeight: 900,
+                    color: '#0F172A',
+                    display: 'block',
+                    marginTop: '6px',
+                  }}
+                >
+                  {issueDate}
+                </span>
+              </div>
+
+              {/* Center: Official School Seal (print.png) enlarged by ~25-30% */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img
+                  src={printImg || '/print.png'}
+                  alt="Печать школы"
+                  crossOrigin="anonymous"
+                  loading="eager"
+                  style={{
+                    width: '210px',
+                    height: '210px',
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.2))',
+                    userSelect: 'none',
+                  }}
+                />
+              </div>
+
+              {/* Right: Signature & RENDERIA & KIBERONE */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-end',
+                  textAlign: 'right',
+                  minWidth: '320px',
+                  gap: '8px',
+                }}
+              >
+                <img
+                  src={signatureImg || '/signature.png'}
+                  alt="Подпись"
+                  crossOrigin="anonymous"
+                  loading="eager"
+                  style={{
+                    height: '96px',
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
+                    userSelect: 'none',
+                  }}
+                />
+                <div
+                  style={{
+                    borderTop: '2px solid rgba(15, 23, 42, 0.25)',
+                    width: '100%',
+                    paddingTop: '8px',
+                    textAlign: 'right',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 900,
+                      fontSize: '24px',
+                      color: '#0F172A',
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    RENDERIA &amp; KIBERONE
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '17px',
+                      color: '#64748B',
+                    }}
+                  >
+                    Школа цифровых технологий
+                  </div>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons: Export TXT, Print, Create New Hero */}
+      {/* Action Buttons: Download PNG and Create New Hero */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
         <button
-          onClick={handleDownloadTxt}
-          className="btn-3d-lime w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-display font-black text-base cursor-pointer border-2 border-[#252735]"
+          onClick={handleDownloadPng}
+          disabled={isExporting}
+          className="btn-3d-lime w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4.5 rounded-2xl font-display font-black text-lg cursor-pointer border-2 border-[#252735] shadow-[0_6px_0_#252735] transition-all hover:translate-y-[-2px]"
         >
-          <Download className="w-5 h-5" />
-          <span>Скачать техзадание в TXT</span>
-        </button>
-
-        <button
-          onClick={handlePrint}
-          className="btn-3d-white w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-display font-black text-base cursor-pointer border-2 border-slate-300"
-        >
-          <Printer className="w-5 h-5 text-slate-700" />
-          <span>Печать / Сохранить в PDF</span>
+          {isExporting ? (
+            <>
+              <Loader2 className="w-6 h-6 animate-spin text-[#252735]" />
+              <span>Создаём изображение...</span>
+            </>
+          ) : (
+            <>
+              <Download className="w-6 h-6 text-[#252735]" />
+              <span>⬇️ Скачать сертификат (PNG)</span>
+            </>
+          )}
         </button>
 
         <button
           onClick={onRestart}
-          className="btn-3d-white w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-display font-black text-base cursor-pointer border-2 border-slate-300"
+          className="btn-3d-white w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-4.5 rounded-2xl font-display font-black text-base cursor-pointer border-2 border-slate-300 shadow-[0_4px_0_#cbd5e1] transition-all hover:translate-y-[-2px]"
         >
           <RotateCcw className="w-5 h-5 text-slate-700" />
           <span>Создать нового героя</span>
         </button>
       </div>
+
+      {exportError && (
+        <div className="max-w-md mx-auto p-3.5 rounded-xl bg-rose-50 border-2 border-rose-300 text-rose-800 text-xs font-bold flex items-center gap-2.5">
+          <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
+          <span>{exportError}</span>
+        </div>
+      )}
     </div>
   );
 };

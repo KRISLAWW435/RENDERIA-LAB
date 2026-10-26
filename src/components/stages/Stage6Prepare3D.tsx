@@ -42,6 +42,22 @@ export const Stage6Prepare3D: React.FC<Stage6Prepare3DProps> = ({
   const allPassed =
     checks.fullBody && checks.singleHero && checks.clearBackground && checks.sharpDetails;
 
+  const handle2DImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      playBadgeSound();
+      const reader = new FileReader();
+      reader.onload = () => {
+        const res = reader.result as string;
+        onUpdate({
+          generatedImageUrl: res,
+          generatedImageSource: 'uploaded',
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleThreeDUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -103,27 +119,45 @@ export const Stage6Prepare3D: React.FC<Stage6Prepare3DProps> = ({
 
         {/* Visual Dual Display: 2D Concept & 3D Simulation */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-          {/* 2D Image Viewport */}
-          <div className="relative rounded-2xl overflow-hidden border-3 border-[#252735] shadow-[0_6px_0_#252735] bg-slate-50 aspect-square flex items-center justify-center">
-            <img
-              src={character.generatedImageUrl || ASSETS.robloxSampleHero}
-              alt="2D концепт"
-              className={`w-full h-full object-contain transition-all duration-300 ${
-                wireframeMode ? 'brightness-90 contrast-125' : ''
-              }`}
-              referrerPolicy="no-referrer"
-            />
-
-            {/* Wireframe mesh overlay effect when toggled */}
-            {wireframeMode && (
-              <div
-                className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#B9F24D_1px,transparent_1px),linear-gradient(to_bottom,#B9F24D_1px,transparent_1px)] bg-[size:24px_24px]"
+          {/* 2D Image Viewport & Upload */}
+          <div className="flex flex-col gap-3">
+            <div className="relative rounded-2xl overflow-hidden border-3 border-[#252735] shadow-[0_6px_0_#252735] bg-slate-50 aspect-square flex items-center justify-center">
+              <img
+                src={character.generatedImageUrl || ASSETS.robloxSampleHero}
+                alt="2D концепт"
+                className={`w-full h-full object-contain transition-all duration-300 ${
+                  wireframeMode ? 'brightness-90 contrast-125' : ''
+                }`}
+                referrerPolicy="no-referrer"
               />
-            )}
 
-            <div className="absolute top-3 left-3 bg-[#252735]/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-              2D Арт-исходник
+              {/* Wireframe mesh overlay effect when toggled */}
+              {wireframeMode && (
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-40 bg-[linear-gradient(to_right,#B9F24D_1px,transparent_1px),linear-gradient(to_bottom,#B9F24D_1px,transparent_1px)] bg-[size:24px_24px]"
+                />
+              )}
+
+              <div className="absolute top-3 left-3 bg-[#252735]/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+                {character.generatedImageUrl ? 'Твой концепт-арт' : 'Образец концепта'}
+              </div>
             </div>
+
+            {/* 2D Image Upload Button */}
+            <label className="btn-3d-white flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold border-2 border-slate-300 hover:border-[#252735] cursor-pointer transition-colors shadow-2xs">
+              <Upload className="w-4 h-4 text-[#252735]" />
+              <span>
+                {character.generatedImageUrl
+                  ? 'Заменить картинку героя'
+                  : 'Загрузить созданную картинку'}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handle2DImageUpload}
+                className="hidden"
+              />
+            </label>
           </div>
 
           {/* 3D Model Readiness Check Cards (NO bullet lists!) */}
@@ -292,7 +326,7 @@ export const Stage6Prepare3D: React.FC<Stage6Prepare3DProps> = ({
                 {threeDResultUrl ? '✓ 3D-результат прикреплён к паспорту героя' : 'Сделал 3D-модель? Прикрепи скриншот!'}
               </span>
               <p className="text-xs text-slate-500">
-                Скриншот или рендер из Tripo3D / Meshy войдёт в твой итоговый диплом дизайнера.
+                Скриншот или рендер из Tripo3D / Meshy войдёт в твой итоговый сертификат дизайнера.
               </p>
             </div>
 
@@ -332,7 +366,7 @@ export const Stage6Prepare3D: React.FC<Stage6Prepare3DProps> = ({
               : 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
           }`}
         >
-          <span>Завершить и получить диплом</span>
+          <span>Завершить и получить сертификат</span>
           <ArrowRight className="w-5 h-5 stroke-[3]" />
         </button>
       </div>

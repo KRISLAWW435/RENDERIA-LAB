@@ -25,7 +25,6 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
   const synthesized = buildSynthesizedPrompt(
     character.name,
     character.role,
-    character.power,
     'roblox_3d',
     character.appearance,
     character.customRoleTitle
@@ -43,14 +42,13 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
   );
 
   const isCustomized = character.isPromptCustomized;
-  const hasBasicSelections = Boolean(character.role && character.power?.trim());
+  const hasBasicSelections = Boolean(character.role);
 
   useEffect(() => {
     if (!character.isPromptCustomized) {
       const synth = buildSynthesizedPrompt(
         character.name,
         character.role,
-        character.power,
         'roblox_3d',
         character.appearance,
         character.customRoleTitle
@@ -83,7 +81,6 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
     const newSynth = buildSynthesizedPrompt(
       character.name,
       character.role,
-      character.power,
       'roblox_3d',
       character.appearance,
       character.customRoleTitle
@@ -154,6 +151,7 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
             </div>
             <span className="font-mono text-xs sm:text-sm font-bold text-slate-300">
               RENDERIA_PROMPT_TERMINAL.ai
+              {character.name?.trim() ? ` [Мой проект: ${character.name.trim()}]` : ''}
             </span>
           </div>
 
@@ -247,7 +245,7 @@ export const Stage4PromptAssembly: React.FC<Stage4PromptAssemblyProps> = ({
             </button>
           ) : (
             <span className="text-xs font-bold text-amber-400/90 bg-amber-400/10 px-3 py-1.5 rounded-xl border border-amber-400/20">
-              💡 Выбери класс и способность героя на Этапе 1, чтобы скопировать промпт
+              💡 Выбери класс героя на Этапе 1, чтобы скопировать промпт
             </span>
           )}
         </div>

@@ -19,8 +19,8 @@ export interface RoleOption {
   tagline: string;
   image: string;
   description: string;
-  defaultPower: string;
-  suggestedPowers: string[];
+  defaultPower?: string;
+  suggestedPowers?: string[];
   colorTheme: string;
   iconSvg: string;
 }
@@ -72,7 +72,6 @@ export interface CharacterData {
   name: string;
   role: RoleId | null | '';
   customRoleTitle?: string;
-  power: string;
   style: VisualStyleId;
   hasLearnedStyle?: boolean;
   appearance: AppearanceState;

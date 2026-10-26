@@ -15,7 +15,6 @@ export const INITIAL_EMPTY_CHARACTER: CharacterData = {
   name: '',
   role: null,
   customRoleTitle: '',
-  power: '',
   style: 'roblox_3d',
   hasLearnedStyle: false,
   appearance: EMPTY_APPEARANCE,
@@ -27,6 +26,17 @@ export const INITIAL_EMPTY_CHARACTER: CharacterData = {
     sharpDetails: true,
   },
   generatedImageSource: null,
+};
+
+const ACCESSORY_NAME_MIGRATION: Record<string, string> = {
+  'Голо-визор': 'Светящийся голо-визор',
+  'Реактивный джетпак': 'Реактивный джетпак с пламенем',
+  'Плащ': 'Неоновая корона',
+  'Светящийся энергетический плащ': 'Неоновая корона',
+  'Наручи': 'Боевые наручи с энергетическими клинками',
+  'Крылья': 'Светящиеся крылья феи',
+  'Шлем': 'Кибер-наушники с антеннами',
+  'Футуристичный шлем с визором': 'Кибер-наушники с антеннами',
 };
 
 interface CharacterContextType {
@@ -49,6 +59,13 @@ export const CharacterProvider: React.FC<{ children: ReactNode }> = ({ children 
         const parsed = JSON.parse(savedV2);
         if (parsed.character) {
           const char = parsed.character;
+          delete char.power; // Remove legacy power property
+
+          // Migrate any legacy accessory name
+          if (char.appearance?.accessory?.name && ACCESSORY_NAME_MIGRATION[char.appearance.accessory.name]) {
+            char.appearance.accessory.name = ACCESSORY_NAME_MIGRATION[char.appearance.accessory.name];
+          }
+
           return {
             ...INITIAL_EMPTY_CHARACTER,
             ...char,
@@ -66,13 +83,7 @@ export const CharacterProvider: React.FC<{ children: ReactNode }> = ({ children 
       const savedLegacy = localStorage.getItem('renderia_lab_state');
       if (savedLegacy) {
         const parsed = JSON.parse(savedLegacy);
-        // If legacy had hardcoded default values, reset to empty
-        if (
-          parsed.character &&
-          (parsed.character.name === 'Астро-Пилот' ||
-            (parsed.character.role === 'cosmic_explorer' &&
-              parsed.character.power === 'Управляет гравитацией и открывает порталы'))
-        ) {
+        if (parsed.character && parsed.character.name === 'Астро-Пилот') {
           localStorage.removeItem('renderia_lab_state');
           return INITIAL_EMPTY_CHARACTER;
         }

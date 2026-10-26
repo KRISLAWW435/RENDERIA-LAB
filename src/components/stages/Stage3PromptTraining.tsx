@@ -772,14 +772,14 @@ export const Stage3PromptTraining: React.FC<Stage3PromptTrainingProps> = ({
                     Кто твой герой?
                   </h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Опиши роль и суперспособность.
+                    Опиши класс героя (ниндзя, космонавт) и его особенности.
                   </p>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white border border-amber-200/80 text-[11px] text-amber-900 leading-snug">
                   <span className="font-bold text-amber-800 block text-[10px] uppercase tracking-wider mb-0.5">
                     Пример:
                   </span>
-                  Кибер-ниндзя, управляющий огнем
+                  Кибер-ниндзя, ловкий разведчик
                 </div>
               </div>
 
@@ -793,14 +793,14 @@ export const Stage3PromptTraining: React.FC<Stage3PromptTrainingProps> = ({
                     Как он выглядит?
                   </h4>
                   <p className="text-xs text-slate-600 leading-relaxed">
-                    Внешность, костюм, цвета, особые детали.
+                    Опиши костюм, цвета и детали (синий плащ, голубые крылья).
                   </p>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white border border-sky-200/80 text-[11px] text-sky-900 leading-snug">
                   <span className="font-bold text-sky-800 block text-[10px] uppercase tracking-wider mb-0.5">
                     Пример:
                   </span>
-                  Синий костюм и голубое пламя в руках
+                  Синий костюм, темный плащ и светящиеся крылья
                 </div>
               </div>
 

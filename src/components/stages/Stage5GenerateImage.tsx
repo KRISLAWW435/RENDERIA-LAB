@@ -1,9 +1,21 @@
 import React, { useState } from 'react';
 import { CharacterData } from '../../types/avatar';
-import { EXTERNAL_IMAGE_GENERATORS, ASSETS } from '../../data/labData';
+import { EXTERNAL_IMAGE_GENERATORS, buildSynthesizedPrompt, sanitizePromptRu } from '../../data/labData';
 import { MascotPixel } from '../MascotPixel';
-import { playClickSound, playSuccessSound, playSelectSound, playBadgeSound } from '../../services/soundEffects';
-import { ArrowRight, ArrowLeft, Upload, ExternalLink, RefreshCw, Check, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { playClickSound, playSuccessSound, playSelectSound } from '../../services/soundEffects';
+import {
+  ArrowRight,
+  ArrowLeft,
+  ExternalLink,
+  Check,
+  Copy,
+  CheckCheck,
+  Globe,
+  Sparkles,
+  ClipboardPaste,
+  Wand2,
+  Download,
+} from 'lucide-react';
 
 interface Stage5GenerateImageProps {
   character: CharacterData;
@@ -14,64 +26,41 @@ interface Stage5GenerateImageProps {
 
 export const Stage5GenerateImage: React.FC<Stage5GenerateImageProps> = ({
   character,
-  onUpdate,
   onNext,
   onPrev,
 }) => {
-  const [imageUrl, setImageUrl] = useState<string | undefined>(character.generatedImageUrl);
-  const [imageSource, setImageSource] = useState<'sample' | 'uploaded' | null>(
-    character.generatedImageSource
-  );
-  const [selectedGenerator, setSelectedGenerator] = useState(EXTERNAL_IMAGE_GENERATORS[0]);
-  const [reflectionChoice, setReflectionChoice] = useState<string | undefined>(
-    character.evaluationNote
-  );
-  const [isMatch, setIsMatch] = useState<boolean | null>(
-    character.evaluationNote ? true : null
-  );
+  // Google Flow is selected by default
+  const [selectedId, setSelectedId] = useState<string>('google_flow');
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  // Retrieve current synthesized or customized Russian prompt
+  const synthesized = buildSynthesizedPrompt(
+    character.name,
+    character.role,
+    'roblox_3d',
+    character.appearance,
+    character.customRoleTitle
+  );
+  const promptRu = character.isPromptCustomized && character.customPromptRu
+    ? sanitizePromptRu(character.customPromptRu)
+    : sanitizePromptRu(synthesized.ru);
+
+  const handleCopyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(promptRu);
       playSuccessSound();
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        setImageUrl(result);
-        setImageSource('uploaded');
-        onUpdate({
-          generatedImageUrl: result,
-          generatedImageSource: 'uploaded',
-        });
-      };
-      reader.readAsDataURL(file);
+      setCopiedPrompt(true);
+      setTimeout(() => setCopiedPrompt(false), 2500);
+    } catch {
+      // Fallback
+      setCopiedPrompt(true);
+      setTimeout(() => setCopiedPrompt(false), 2500);
     }
   };
 
-  const handleUseSample = () => {
-    playBadgeSound();
-    setImageUrl(ASSETS.robloxSampleHero);
-    setImageSource('sample');
-    onUpdate({
-      generatedImageUrl: ASSETS.robloxSampleHero,
-      generatedImageSource: 'sample',
-    });
-  };
-
-  const handleRemoveImage = () => {
-    playClickSound();
-    setImageUrl(undefined);
-    setImageSource(null);
-    onUpdate({
-      generatedImageUrl: undefined,
-      generatedImageSource: null,
-    });
-  };
-
-  const handleSelectReflection = (reason: string) => {
+  const handleCardClick = (id: string) => {
     playSelectSound();
-    setReflectionChoice(reason);
-    onUpdate({ evaluationNote: reason });
+    setSelectedId(id);
   };
 
   const handleContinue = () => {
@@ -79,226 +68,270 @@ export const Stage5GenerateImage: React.FC<Stage5GenerateImageProps> = ({
     onNext();
   };
 
+  const selectedGenerator =
+    EXTERNAL_IMAGE_GENERATORS.find((g) => g.id === selectedId) ||
+    EXTERNAL_IMAGE_GENERATORS[0];
+
   return (
     <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 space-y-6">
       {/* Mascot Guidance */}
       <div className="bg-white border-2 border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs">
         <MascotPixel
-          mood={imageUrl ? 'happy' : 'thinking'}
-          speechText={
-            imageUrl
-              ? 'Ура, изображение загружено в лабораторию! Теперь давай внимательно оценим результат — похоже ли это на твою задумку?'
-              : 'Этап 5: Создай изображение! Скопируй промпт и открой генератор, либо загрузи готовую картинку из галереи!'
-          }
-          tip={
-            imageUrl
-              ? 'Профессиональные дизайнеры всегда делают несколько дублей, чтобы найти самый выразительный образ!'
-              : 'Если у тебя нет интернета или аккаунта в сервисах, нажми «Использовать концепт лаборатории», чтобы продолжить обучение!'
-          }
+          mood="happy"
+          speechText="Этап 5: Создание изображения! Выбери удобный генератор нейросети, вставь свой промпт и получи оригинальный концепт-арт."
+          tip="Выбери удобный генератор, вставь скопированный промпт и нажми «Создать». Когда картинка будет готова — скачай её и возвращайся на сайт."
         />
       </div>
 
-      {/* Generator Links & Offline Mode Buttons */}
-      {!imageUrl && (
-        <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-5">
+      {/* AI Generator Cards */}
+      <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
             <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-              Шаг 1 из 2
+              Выбор нейросети
             </span>
             <h2 className="text-xl sm:text-2xl font-black font-display text-[#252735]">
               Где сгенерировать персонажа?
             </h2>
             <p className="text-xs sm:text-sm text-slate-600">
-              Выбери один из проверенных генераторов, вставь свой скопированный промпт и скачай результат:
+              Нажми на карточку, чтобы выбрать генератор и перейти к созданию арта:
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {EXTERNAL_IMAGE_GENERATORS.map((gen) => (
-              <a
+          {/* Quick open active button */}
+          <a
+            href={selectedGenerator.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => playClickSound()}
+            className="btn-3d-lime inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl font-display font-black text-sm border-2 border-[#252735] shrink-0"
+          >
+            <span>Открыть {selectedGenerator.name.split(' ')[0]}</span>
+            <ExternalLink className="w-4 h-4 stroke-[2.5]" />
+          </a>
+        </div>
+
+        {/* 4 Generator Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {EXTERNAL_IMAGE_GENERATORS.map((gen) => {
+            const isSelected = selectedId === gen.id;
+            return (
+              <div
                 key={gen.id}
-                href={gen.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => playClickSound()}
-                className="group p-4 rounded-2xl border-2 border-slate-200 hover:border-[#252735] hover:bg-slate-50 transition-all flex items-center justify-between text-left"
+                onClick={() => handleCardClick(gen.id)}
+                className={`relative group p-5 rounded-3xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-4 ${
+                  isSelected
+                    ? 'border-[#252735] bg-[#F8FAFD] shadow-[0_6px_0_#252735]'
+                    : 'border-slate-200 bg-white hover:border-slate-400 hover:shadow-xs'
+                }`}
               >
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-sm text-[#252735] group-hover:text-blue-600">
-                      {gen.name}
-                    </span>
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600" />
+                  <div className="flex items-start justify-between gap-3 mb-2.5">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="font-display font-black text-base sm:text-lg text-[#252735]">
+                        {gen.name}
+                      </span>
+                      {gen.isRecommended && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider bg-[#B9F24D] text-[#252735] px-2.5 py-0.5 rounded-full border border-[#252735]">
+                          <Sparkles className="w-3 h-3" />
+                          Рекомендуем
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Selection Indicator Checkmark */}
+                    <div
+                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                        isSelected
+                          ? 'bg-[#B9F24D] border-[#252735] text-[#252735]'
+                          : 'border-slate-300 bg-slate-50 text-transparent group-hover:border-slate-400'
+                      }`}
+                    >
+                      <Check className="w-4 h-4 stroke-[3]" />
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500">{gen.description}</p>
+
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    {gen.description}
+                  </p>
                 </div>
-              </a>
-            ))}
-          </div>
 
-          {/* Offline Quick Preset Fallback */}
-          <div className="p-4 rounded-2xl bg-[#B9F24D]/15 border-2 border-dashed border-[#B9F24D] flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="space-y-0.5 text-center sm:text-left">
-              <span className="text-xs font-black text-[#252735] uppercase tracking-wider">
-                💡 Офлайн-режим / Быстрый тест
-              </span>
-              <p className="text-xs text-slate-700">
-                Нет интернета или генератора прямо сейчас? Загрузи официальный 3D-концепт лаборатории RENDERIA!
-              </p>
-            </div>
-            <button
-              onClick={handleUseSample}
-              className="btn-3d-lime shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold border border-[#252735] cursor-pointer"
-            >
-              Использовать концепт лаборатории
-            </button>
-          </div>
+                {/* Card footer: open link */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-500">
+                    {isSelected ? '✓ Выбранный генератор' : 'Нажми для выбора'}
+                  </span>
+                  <a
+                    href={gen.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playClickSound();
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-black text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-xl border border-sky-200 transition-colors"
+                  >
+                    <span>Перейти на сайт</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      )}
+      </div>
 
-      {/* Upload & Preview Stage */}
+      {/* Step-by-Step Instructions Block */}
       <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
         <div className="space-y-1">
           <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-            {imageUrl ? 'Результат генерации' : 'Шаг 2 из 2'}
+            Инструкция
           </span>
           <h2 className="text-xl sm:text-2xl font-black font-display text-[#252735]">
-            {imageUrl ? 'Герой в лаборатории' : 'Загрузи полученное изображение'}
+            Пошаговый план генерации
           </h2>
           <p className="text-xs sm:text-sm text-slate-600">
-            {imageUrl
-              ? 'Изображение готово для проверки требований к 3D-моделированию:'
-              : 'Перетащи файл картинки сюда или нажми кнопку для выбора файла с компьютера:'}
+            Следуй простым шагам, чтобы создать изображение персонажа:
           </p>
         </div>
 
-        {/* Display Image or Upload Dropzone */}
-        {imageUrl ? (
-          <div className="flex flex-col md:flex-row items-center gap-6 p-6 rounded-3xl bg-slate-50 border-2 border-slate-200">
-            {/* Image Preview Box */}
-            <div className="relative w-64 h-64 sm:w-80 sm:h-80 rounded-2xl overflow-hidden border-3 border-[#252735] shadow-[0_6px_0_#252735] bg-white flex items-center justify-center shrink-0">
-              <img
-                src={imageUrl}
-                alt="Сгенерированный персонаж"
-                className="w-full h-full object-contain select-none"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute top-3 left-3 bg-[#252735]/80 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                {imageSource === 'sample' ? 'Концепт RENDERIA' : 'Пользовательский арт'}
+        {/* 5 Visual Steps */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          {/* Step 1 */}
+          <div className="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 flex flex-col justify-between gap-3">
+            <div className="space-y-2">
+              <div className="w-9 h-9 rounded-xl bg-[#B9F24D] border border-[#252735] flex items-center justify-center font-display font-black text-sm text-[#252735]">
+                1
               </div>
-            </div>
-
-            {/* Evaluation & Reflection Panel */}
-            <div className="flex-1 space-y-4">
-              <div className="space-y-2">
-                <h3 className="font-display font-black text-lg text-[#252735]">
-                  Анализ результата с Пиксом
-                </h3>
-                <p className="text-xs text-slate-600">
-                  Похож ли полученный герой на то, что ты задумал в начале пути?
-                </p>
-
-                {/* Yes / No simple buttons */}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      playSelectSound();
-                      setIsMatch(true);
-                    }}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                      isMatch === true
-                        ? 'bg-[#B9F24D] text-[#252735] border-[#252735]'
-                        : 'bg-white text-slate-700 border-slate-300'
-                    }`}
-                  >
-                    👍 Да, очень похож!
-                  </button>
-                  <button
-                    onClick={() => {
-                      playSelectSound();
-                      setIsMatch(false);
-                    }}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                      isMatch === false
-                        ? 'bg-[#FFB9D5] text-[#252735] border-[#252735]'
-                        : 'bg-white text-slate-700 border-slate-300'
-                    }`}
-                  >
-                    🤔 Хочу ещё улучшить
-                  </button>
-                </div>
-              </div>
-
-              {/* Reflection choices: What would you improve next? */}
-              <div className="space-y-2 pt-2 border-t border-slate-200">
-                <span className="text-xs font-bold text-slate-600">
-                  Что стоит скорректировать в следующем дубле?
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { id: 'color', label: '🎨 Цвет костюма' },
-                    { id: 'accessory', label: '🎒 Аксессуары' },
-                    { id: 'pose', label: '🧍 Позу персонажа' },
-                    { id: 'background', label: '⚪️ Очистить фон' },
-                    { id: 'details', label: '✨ Больше мелких деталей' },
-                  ].map((item) => {
-                    const isSelected = reflectionChoice === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => handleSelectReflection(item.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-[#252735] text-white border-[#252735]'
-                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Replace / Change Image Action */}
-              <div className="pt-2 flex items-center gap-3">
-                <button
-                  onClick={handleRemoveImage}
-                  className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 cursor-pointer"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Загрузить другой файл</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Upload Dropzone */
-          <div className="border-3 border-dashed border-slate-300 hover:border-[#62C9F5] rounded-3xl p-8 sm:p-12 text-center transition-colors bg-slate-50/50 flex flex-col items-center justify-center gap-4">
-            <div className="w-16 h-16 rounded-3xl bg-[#62C9F5]/20 flex items-center justify-center text-3xl">
-              🖼️
-            </div>
-            <div className="space-y-1 max-w-sm">
-              <h3 className="font-display font-black text-base text-[#252735]">
-                Перетащи изображение сюда
+              <h3 className="font-display font-black text-sm text-[#252735]">
+                Скопируй промпт
               </h3>
-              <p className="text-xs text-slate-500">
-                Поддерживаются PNG, JPG, WEBP. Файл обрабатывается прямо в браузере без отправки на сервер.
+              <p className="text-xs text-slate-500 leading-snug">
+                (на Этапе 4)
               </p>
             </div>
-
-            <label className="btn-3d-sky inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-display font-black text-sm cursor-pointer border border-[#3BA5D3]">
-              <Upload className="w-4 h-4" />
-              <span>Выбрать файл с компьютера</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </label>
+            <button
+              onClick={handleCopyPrompt}
+              className={`w-full py-1.5 px-2.5 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                copiedPrompt
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  : 'bg-white hover:bg-slate-100 text-[#252735] border-slate-300'
+              }`}
+            >
+              {copiedPrompt ? (
+                <>
+                  <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Скопировано!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Скопировать</span>
+                </>
+              )}
+            </button>
           </div>
-        )}
+
+          {/* Step 2 */}
+          <div className="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 flex flex-col justify-between gap-3">
+            <div className="space-y-2">
+              <div className="w-9 h-9 rounded-xl bg-[#62C9F5] border border-[#252735] flex items-center justify-center font-display font-black text-sm text-[#252735]">
+                2
+              </div>
+              <h3 className="font-display font-black text-sm text-[#252735]">
+                Открой выбранный генератор
+              </h3>
+              <p className="text-xs text-slate-500 leading-snug">
+                (нажми на карточку)
+              </p>
+            </div>
+            <div className="text-[11px] font-bold text-slate-400 bg-white/70 py-1 px-2 rounded-lg border border-slate-200 text-center">
+              🌐 В новой вкладке
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div className="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 flex flex-col justify-between gap-3">
+            <div className="space-y-2">
+              <div className="w-9 h-9 rounded-xl bg-[#BDA7FF] border border-[#252735] flex items-center justify-center font-display font-black text-sm text-[#252735]">
+                3
+              </div>
+              <h3 className="font-display font-black text-sm text-[#252735]">
+                Вставь промпт в поле ввода
+              </h3>
+              <p className="text-xs text-slate-500 leading-snug">
+                (внутри нейросети)
+              </p>
+            </div>
+            <div className="text-[11px] font-bold text-slate-400 bg-white/70 py-1 px-2 rounded-lg border border-slate-200 text-center">
+              ⌨️ Ctrl + V / ⌘ + V
+            </div>
+          </div>
+
+          {/* Step 4 */}
+          <div className="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 flex flex-col justify-between gap-3">
+            <div className="space-y-2">
+              <div className="w-9 h-9 rounded-xl bg-[#FFB9D5] border border-[#252735] flex items-center justify-center font-display font-black text-sm text-[#252735]">
+                4
+              </div>
+              <h3 className="font-display font-black text-sm text-[#252735]">
+                Нажми кнопку «Создать»
+              </h3>
+              <p className="text-xs text-slate-500 leading-snug">
+                (или «Generate»)
+              </p>
+            </div>
+            <div className="text-[11px] font-bold text-slate-400 bg-white/70 py-1 px-2 rounded-lg border border-slate-200 text-center">
+              ⚡️ Генерация 10-30 сек
+            </div>
+          </div>
+
+          {/* Step 5 */}
+          <div className="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 flex flex-col justify-between gap-3">
+            <div className="space-y-2">
+              <div className="w-9 h-9 rounded-xl bg-[#B9F24D] border border-[#252735] flex items-center justify-center font-display font-black text-sm text-[#252735]">
+                5
+              </div>
+              <h3 className="font-display font-black text-sm text-[#252735]">
+                Скачай готовую картинку
+              </h3>
+              <p className="text-xs text-slate-500 leading-snug">
+                (она понадобится на следующем шаге)
+              </p>
+            </div>
+            <div className="text-[11px] font-bold text-emerald-700 bg-emerald-50 py-1 px-2 rounded-lg border border-emerald-200 text-center">
+              💾 Сохрани на ПК
+            </div>
+          </div>
+        </div>
+
+        {/* Live Prompt snippet box so children don't even need to switch tabs to read it */}
+        <div className="p-4 rounded-2xl bg-[#62C9F5]/10 border border-[#62C9F5]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+              Твой готовый промпт:
+            </span>
+            <p className="text-xs text-[#252735] font-medium line-clamp-2 max-w-2xl">
+              {promptRu}
+            </p>
+          </div>
+          <button
+            onClick={handleCopyPrompt}
+            className="btn-3d-white shrink-0 px-4 py-2 rounded-xl text-xs font-bold border border-slate-300 flex items-center gap-1.5 cursor-pointer"
+          >
+            {copiedPrompt ? (
+              <>
+                <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Скопировано!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span>Скопировать промпт</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -316,14 +349,9 @@ export const Stage5GenerateImage: React.FC<Stage5GenerateImageProps> = ({
 
         <button
           onClick={handleContinue}
-          disabled={!imageUrl}
-          className={`flex items-center gap-2.5 px-8 py-4 rounded-2xl font-display font-black text-lg border-2 ${
-            imageUrl
-              ? 'btn-3d-lime border-[#252735] cursor-pointer'
-              : 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
-          }`}
+          className="btn-3d-lime flex items-center gap-2.5 px-8 py-4 rounded-2xl font-display font-black text-lg border-2 border-[#252735] cursor-pointer"
         >
-          <span>Дальше: Подготовить к 3D</span>
+          <span>Дальше: Проверить героя для 3D</span>
           <ArrowRight className="w-5 h-5 stroke-[3]" />
         </button>
       </div>

@@ -23,7 +23,7 @@ const INITIAL_BADGES: BadgeItem[] = [
   {
     id: 'b1',
     title: 'Придумал концепцию',
-    description: 'Определил класс и уникальную способность героя',
+    description: 'Определил класс и звучное имя своего героя',
     xp: 100,
     earned: false,
   },
