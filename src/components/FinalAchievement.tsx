@@ -43,7 +43,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
   const [studentName, setStudentName] = useState('Юный дизайнер');
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
-  const [previewScale, setPreviewScale] = useState(0.42);
+  const [scale, setScale] = useState(1);
 
   const roleMeta = ROLES.find((r) => r.id === character.role) || ROLES[0];
 
@@ -62,21 +62,29 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
     }
   }, []);
 
-  // Responsive scaling for the 1792x2400 fixed canvas preview
+  // ResizeObserver on wrapper: scale = wrapper.clientWidth / 1792
   useEffect(() => {
+    const wrapper = containerWrapperRef.current;
+    if (!wrapper) return;
+
     const updateScale = () => {
       if (containerWrapperRef.current) {
-        const availWidth = containerWrapperRef.current.clientWidth;
-        // Cap max preview width on large screens to around 760px
-        const maxTargetWidth = Math.min(availWidth, 760);
-        const s = Math.max(0.18, maxTargetWidth / 1792);
-        setPreviewScale(s);
+        const s = containerWrapperRef.current.clientWidth / 1792;
+        setScale(s);
       }
     };
 
     updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateScale();
+    });
+
+    resizeObserver.observe(wrapper);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, []);
 
   const issueDate = new Date().toLocaleDateString('ru-RU', {
@@ -94,7 +102,17 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
     try {
       const element = certificateRef.current;
 
-      // 1. Ensure all images inside the certificate are fully loaded and decoded
+      // 1. Ensure all images inside the certificate and background are fully loaded and decoded
+      const bgImg = new Image();
+      bgImg.crossOrigin = 'anonymous';
+      bgImg.src = certificateBg;
+      if (!bgImg.complete) {
+        await new Promise<void>((resolve) => {
+          bgImg.onload = () => resolve();
+          bgImg.onerror = () => resolve();
+        });
+      }
+
       const images = Array.from(element.querySelectorAll('img'));
       await Promise.all(
         images.map(async (img) => {
@@ -143,10 +161,17 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
           const clonedContainer = clonedDoc.getElementById('certificate-container');
           if (clonedContainer) {
             clonedContainer.style.transform = 'none';
+            clonedContainer.style.position = 'relative';
+            clonedContainer.style.top = '0';
+            clonedContainer.style.left = '0';
+            clonedContainer.style.width = '1792px';
+            clonedContainer.style.height = '2400px';
             if (clonedContainer.parentElement) {
               clonedContainer.parentElement.style.transform = 'none';
               clonedContainer.parentElement.style.width = '1792px';
               clonedContainer.parentElement.style.height = '2400px';
+              clonedContainer.parentElement.style.maxWidth = '1792px';
+              clonedContainer.parentElement.style.aspectRatio = 'auto';
             }
           }
         },
@@ -256,36 +281,42 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
         </div>
       </div>
 
-      {/* Certificate Container: Clean layout, No outer box-shadow, No dark overlays, 100% Brightness */}
-      <div className="w-full flex justify-center overflow-x-auto pb-6">
+      {/* Certificate Scaling Wrapper:
+          width: 100%; max-width: 1792px; aspect-ratio: 1792 / 2400; position: relative; overflow: hidden; margin: 0 auto; */}
+      <div className="w-full pb-6">
         <div
           ref={containerWrapperRef}
-          className="relative flex justify-center items-start"
           style={{
-            width: `${1792 * previewScale}px`,
-            height: `${2400 * previewScale}px`,
-            maxWidth: '100%',
+            width: '100%',
+            maxWidth: '1792px',
+            aspectRatio: '1792 / 2400',
+            position: 'relative',
+            overflow: 'hidden',
+            margin: '0 auto',
           }}
         >
+          {/* Inner Canvas:
+              width: 1792px; height: 2400px; position: absolute; top: 0; left: 0; transform-origin: top left; transform: scale(${scale}); */}
           <div
             ref={certificateRef}
             id="certificate-container"
             style={{
-              position: 'relative',
               width: '1792px',
               height: '2400px',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              transformOrigin: 'top left',
+              transform: `scale(${scale})`,
               overflow: 'hidden',
               userSelect: 'none',
-              transform: `scale(${previewScale})`,
-              transformOrigin: 'top left',
               boxShadow: 'none',
               border: 'none',
-              background: 'transparent',
               fontFamily:
                 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             }}
           >
-            {/* certificate.png Full Background at 100% Brightness with NO dark gradient overlays */}
+            {/* Background Image: No squishing, object-fit: cover */}
             <img
               src={certificateBg || ASSETS.certificatePng || '/certificate.png'}
               alt="Certificate Background"
@@ -295,17 +326,18 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                width: '1792px',
-                height: '2400px',
+                width: '100%',
+                height: '100%',
                 objectFit: 'cover',
-                objectPosition: 'center',
+                zIndex: 0,
                 pointerEvents: 'none',
                 userSelect: 'none',
               }}
             />
 
-            {/* Character Frame Wrapper positioned exactly according to Figma specs:
-                position: absolute; left: 205px; top: 614px; width: 682px; height: 809px; */}
+            {/* Character Frame (Left Side):
+                position: absolute; left: 205px; top: 614px; width: 682px; height: 809px; z-index: 10;
+                background: transparent !important; border: none; */}
             <div
               style={{
                 position: 'absolute',
@@ -313,20 +345,17 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                 top: '614px',
                 width: '682px',
                 height: '809px',
-                borderRadius: '36px',
-                border: '3px solid rgba(255, 255, 255, 0.85)',
-                boxShadow:
-                  '0 0 45px rgba(80, 60, 250, 0.45), 0 0 25px rgba(98, 201, 245, 0.35), inset 0 0 30px rgba(255, 255, 255, 0.2)',
-                background:
-                  'radial-gradient(circle at center, rgba(80, 60, 250, 0.22) 0%, rgba(15, 23, 42, 0.5) 100%)',
-                overflow: 'hidden',
+                zIndex: 10,
+                background: 'transparent',
+                backgroundColor: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              {/* Inner character image: width: 100%; height: 100%; object-fit: cover; aspect-ratio: 3 / 4;
-                  transparent background, no white box behind it */}
+              {/* Inner character image: width: 100%; height: 100%; object-fit: contain; */}
               <img
                 src={character.generatedImageUrl || ASSETS.robloxSampleHero}
                 alt="Концепт персонажа"
@@ -335,8 +364,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
-                  aspectRatio: '3 / 4',
+                  objectFit: 'contain',
                   background: 'transparent',
                   backgroundColor: 'transparent',
                   border: 'none',
@@ -350,12 +378,13 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                   bottom: '24px',
                   background: 'rgba(255, 255, 255, 0.96)',
                   borderRadius: '20px',
-                  boxShadow: '0 6px 0 #D1D5DB, 0 10px 20px rgba(0, 0, 0, 0.2)',
+                  boxShadow: '0 6px 0 #D1D5DB, 0 10px 20px rgba(0, 0, 0, 0.15)',
                   border: '2px solid #FFFFFF',
                   padding: '12px 28px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
+                  zIndex: 11,
                 }}
               >
                 <Sparkles style={{ width: '22px', height: '22px', color: '#F59E0B' }} />
@@ -372,7 +401,9 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
               </div>
             </div>
 
-            {/* 2x2 Grid of 3D Info Cards on the Right side of the Character Frame */}
+            {/* Text Cards Grid (Right Side):
+                position: absolute; left: 927px; top: 614px; width: 660px; height: 809px; z-index: 10;
+                display: grid; grid-template-columns: 1fr 1fr; gap: 20px; */}
             <div
               style={{
                 position: 'absolute',
@@ -380,18 +411,19 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                 top: '614px',
                 width: '660px',
                 height: '809px',
+                zIndex: 10,
                 display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '24px',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '20px',
               }}
             >
               {/* 1. Name Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.95)',
+                  background: '#FFFFFF',
                   borderRadius: '32px',
-                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.15)',
-                  border: '2px solid rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.12)',
+                  border: '2px solid #FFFFFF',
                   padding: '28px 20px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -410,7 +442,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
-                    marginBottom: '18px',
+                    marginBottom: '16px',
                   }}
                 >
                   <User style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
@@ -443,10 +475,10 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
               {/* 2. Role Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.95)',
+                  background: '#FFFFFF',
                   borderRadius: '32px',
-                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.15)',
-                  border: '2px solid rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.12)',
+                  border: '2px solid #FFFFFF',
                   padding: '28px 20px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -465,7 +497,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
-                    marginBottom: '18px',
+                    marginBottom: '16px',
                   }}
                 >
                   <Shield style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
@@ -498,10 +530,10 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
               {/* 3. Suit Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.95)',
+                  background: '#FFFFFF',
                   borderRadius: '32px',
-                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.15)',
-                  border: '2px solid rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.12)',
+                  border: '2px solid #FFFFFF',
                   padding: '28px 20px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -520,7 +552,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
-                    marginBottom: '18px',
+                    marginBottom: '16px',
                   }}
                 >
                   <Shirt style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
@@ -553,10 +585,10 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
               {/* 4. Accessory Card */}
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.95)',
+                  background: '#FFFFFF',
                   borderRadius: '32px',
-                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.15)',
-                  border: '2px solid rgba(255, 255, 255, 0.95)',
+                  boxShadow: '0 10px 0 #D1D5DB, 0 16px 26px rgba(0, 0, 0, 0.12)',
+                  border: '2px solid #FFFFFF',
                   padding: '28px 20px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -575,7 +607,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: '0 8px 16px rgba(80, 60, 250, 0.35)',
-                    marginBottom: '18px',
+                    marginBottom: '16px',
                   }}
                 >
                   <Glasses style={{ width: '46px', height: '46px', color: '#FFFFFF' }} />
@@ -606,18 +638,20 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
               </div>
             </div>
 
-            {/* Wide Skills Container (Positioned below character and cards, slightly adjusted up) */}
+            {/* Skills & Competencies Section (Positioned absolutely below character and cards):
+                position: absolute; left: 205px; top: 1480px; width: 1382px; */}
             <div
               style={{
                 position: 'absolute',
                 left: '205px',
-                top: '1463px',
+                top: '1480px',
                 width: '1382px',
                 height: '370px',
-                background: 'rgba(255, 255, 255, 0.95)',
+                zIndex: 10,
+                background: '#FFFFFF',
                 borderRadius: '36px',
-                boxShadow: '0 12px 0 #D1D5DB, 0 18px 30px rgba(0, 0, 0, 0.15)',
-                border: '2px solid rgba(255, 255, 255, 0.95)',
+                boxShadow: '0 12px 0 #D1D5DB, 0 18px 30px rgba(0, 0, 0, 0.12)',
+                border: '2px solid #FFFFFF',
                 padding: '36px 44px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -730,18 +764,20 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
               </div>
             </div>
 
-            {/* Footer Container with Date (Left), Enlarged Seal (Center), and Signature (Right) */}
+            {/* Footer Container (Date, Print, Signature):
+                position: absolute; left: 205px; top: 2050px; width: 1382px; */}
             <div
               style={{
                 position: 'absolute',
                 left: '205px',
-                top: '1873px',
+                top: '2050px',
                 width: '1382px',
-                height: '260px',
-                background: 'rgba(255, 255, 255, 0.95)',
+                height: '240px',
+                zIndex: 10,
+                background: '#FFFFFF',
                 borderRadius: '36px',
-                boxShadow: '0 12px 0 #D1D5DB, 0 18px 30px rgba(0, 0, 0, 0.15)',
-                border: '2px solid rgba(255, 255, 255, 0.95)',
+                boxShadow: '0 12px 0 #D1D5DB, 0 18px 30px rgba(0, 0, 0, 0.12)',
+                border: '2px solid #FFFFFF',
                 padding: '24px 50px',
                 display: 'flex',
                 alignItems: 'center',
@@ -775,7 +811,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                 </span>
               </div>
 
-              {/* Center: Official School Seal (print.png) enlarged by ~25-30% */}
+              {/* Center: Official School Seal (print.png) */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <img
                   src={printImg || '/print.png'}
@@ -783,10 +819,10 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                   crossOrigin="anonymous"
                   loading="eager"
                   style={{
-                    width: '210px',
-                    height: '210px',
+                    width: '200px',
+                    height: '200px',
                     objectFit: 'contain',
-                    filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.2))',
+                    filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.18))',
                     userSelect: 'none',
                   }}
                 />
@@ -811,7 +847,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
                   style={{
                     height: '96px',
                     objectFit: 'contain',
-                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
+                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.12))',
                     userSelect: 'none',
                   }}
                 />
