@@ -8,10 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig(() => {
-  // If deploying to a GitHub sub-folder (e.g. username.github.io/renderia/),
-  // change '/renderia/' to your actual repository name or supply VITE_BASE_PATH.
-  // In development, './' keeps local previews and AI Studio working out of the box.
-  const base = process.env.VITE_BASE_PATH || (process.env.NODE_ENV === 'production' ? '/renderia/' : './');
+  const base = process.env.VITE_BASE_PATH || './';
 
   return {
     base,

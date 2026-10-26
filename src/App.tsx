@@ -99,16 +99,52 @@ function AppContent() {
   const [currentStage, setCurrentStage] = useState<StageId>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.toLowerCase();
-      if (hash && HASH_TO_STAGE[hash]) {
+      if (hash && hash !== '#/' && hash !== '#' && HASH_TO_STAGE[hash]) {
         return HASH_TO_STAGE[hash];
+      }
+      try {
+        const saved = localStorage.getItem('renderia_lab_session');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.currentStage) {
+            return parsed.currentStage;
+          }
+        }
+      } catch {
+        // Ignore
       }
     }
     return 'intro';
   });
 
   const { character, updateCharacter, resetCharacter } = useCharacter();
-  const [badges, setBadges] = useState<BadgeItem[]>(INITIAL_BADGES);
-  const [completedStages, setCompletedStages] = useState<Record<string, boolean>>({});
+  const [badges, setBadges] = useState<BadgeItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('renderia_lab_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.badges)) return parsed.badges;
+      }
+    } catch {
+      // Ignore
+    }
+    return INITIAL_BADGES.map((b) => ({ ...b }));
+  });
+  const [completedStages, setCompletedStages] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem('renderia_lab_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.completedStages && typeof parsed.completedStages === 'object') {
+          return parsed.completedStages;
+        }
+      }
+    } catch {
+      // Ignore
+    }
+    return {};
+  });
+  const [sessionKey, setSessionKey] = useState(0);
 
   // Sync hash routing changes (Back/Forward or direct hash entry)
   useEffect(() => {
@@ -129,23 +165,6 @@ function AppContent() {
       window.location.hash = targetHash;
     }
   }, [currentStage]);
-
-  // Load badges and stage from localStorage if available
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('renderia_lab_session');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.currentStage && !window.location.hash) {
-          setCurrentStage(parsed.currentStage);
-        }
-        if (parsed.badges) setBadges(parsed.badges);
-        if (parsed.completedStages) setCompletedStages(parsed.completedStages);
-      }
-    } catch {
-      // Ignore
-    }
-  }, []);
 
   // Save stage and badges changes to localStorage
   useEffect(() => {
@@ -221,16 +240,23 @@ function AppContent() {
 
   const handleReset = () => {
     try {
-      resetCharacter();
-      setBadges(INITIAL_BADGES);
-      setCompletedStages({});
-      setCurrentStage('intro');
-      localStorage.clear();
+      localStorage.removeItem('renderia_lab_session');
+      localStorage.removeItem('renderia_lab_state_v2');
+      localStorage.removeItem('renderia_lab_state');
       sessionStorage.clear();
-      window.location.hash = '';
-      window.location.replace(window.location.pathname);
     } catch {
-      window.location.reload();
+      // Ignore storage errors
+    }
+
+    resetCharacter();
+    setBadges(INITIAL_BADGES.map((b) => ({ ...b, earned: false })));
+    setCompletedStages({});
+    setCurrentStage('intro');
+    setSessionKey((prev) => prev + 1);
+
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#/';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -262,7 +288,7 @@ function AppContent() {
       />
 
       {/* Stage Views */}
-      <main className="flex-1 pb-16">
+      <main key={sessionKey} className="flex-1 pb-16">
         {currentStage === 'intro' && <IntroScreen onStart={goToStage1} />}
 
         {currentStage === 'stage1_concept' && (

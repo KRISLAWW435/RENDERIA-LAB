@@ -119,7 +119,17 @@ export const CharacterProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   const resetCharacter = () => {
-    setCharacter(INITIAL_EMPTY_CHARACTER);
+    const freshCharacter: CharacterData = {
+      ...INITIAL_EMPTY_CHARACTER,
+      appearance: { ...EMPTY_APPEARANCE },
+      threeDChecks: {
+        fullBody: true,
+        singleHero: true,
+        clearBackground: true,
+        sharpDetails: true,
+      },
+    };
+    setCharacter(freshCharacter);
     try {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem('renderia_lab_state');
