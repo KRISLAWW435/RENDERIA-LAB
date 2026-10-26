@@ -350,6 +350,10 @@ function AppContent() {
             xp={totalXP}
             badges={badges}
             onRestart={handleReset}
+            onPrev={() => {
+              setCurrentStage('stage6_3d');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
           />
         )}
       </main>

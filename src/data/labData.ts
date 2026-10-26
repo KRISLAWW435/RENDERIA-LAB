@@ -2,6 +2,9 @@ import { RoleOption, AppearanceState, RoleId, VisualStyleId } from '../types/ava
 
 import labBgImg from '../assets/images/labbag.webp';
 import pixel1Img from '../assets/pix/pixel1.webp';
+import pix1Png from '../assets/images/Pix1.png';
+import pix2Png from '../assets/images/Pix2.png';
+import pix3Png from '../assets/images/Pix3.png';
 import robloxSampleHeroImg from '../assets/images/roblox_sample_hero_1792768750990.jpg';
 import roleCosmicExplorerImg from '../assets/images/role_cosmic_explorer_1792773201896.jpg';
 import roleCyberNinjaImg from '../assets/images/role_cyber_ninja_1792773216031.jpg';
@@ -67,8 +70,11 @@ export const ASSETS = {
   labBg: labBgImg,
   pixelHappy: pixel1Img,
   pixelThinking: pixel1Img,
-  pixelCelebrate: pixel1Img,
+  pixelCelebrate: pix3Png,
   pixel1: pixel1Img,
+  pix1: pix1Png,
+  pix2: pix2Png,
+  pix3: pix3Png,
   robloxSampleHero: robloxSampleHeroImg,
   roleCosmicExplorer: roleCosmicExplorerImg,
   roleCyberNinja: roleCyberNinjaImg,

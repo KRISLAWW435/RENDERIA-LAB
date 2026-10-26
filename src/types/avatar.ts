@@ -89,6 +89,7 @@ export interface CharacterData {
     sharpDetails: boolean;
   };
   threeDResultUrl?: string;
+  uploaded3DImage?: string;
 }
 
 export interface BadgeItem {

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CharacterData, AppearanceState } from '../../types/avatar';
 import { COLOR_PALETTES, OUTFITS, ACCESSORIES, EXPRESSIONS, POSES, ROLES, resolvePaletteColors } from '../../data/labData';
-import { MascotPixel } from '../MascotPixel';
+import { MascotPixel, PixState } from '../MascotPixel';
 import { playClickSound, playSelectSound, playSuccessSound } from '../../services/soundEffects';
 import {
   ArrowRight,
@@ -89,6 +89,31 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
   const [wizardStep, setWizardStep] = useState<WizardStep>(1);
   const [appearance, setAppearance] = useState<AppearanceState>(character.appearance);
   const [justSelectedId, setJustSelectedId] = useState<string | null>(null);
+  const [isPixReacting, setIsPixReacting] = useState<boolean>(false);
+  const reactionTimerRef = useRef<number | null>(null);
+
+  const triggerPixReaction = () => {
+    setIsPixReacting(true);
+    if (reactionTimerRef.current) {
+      window.clearTimeout(reactionTimerRef.current);
+    }
+    reactionTimerRef.current = window.setTimeout(() => {
+      setIsPixReacting(false);
+    }, 1800);
+  };
+
+  // Reset temporary reaction when step changes
+  useEffect(() => {
+    setIsPixReacting(false);
+    if (reactionTimerRef.current) {
+      window.clearTimeout(reactionTimerRef.current);
+    }
+    return () => {
+      if (reactionTimerRef.current) {
+        window.clearTimeout(reactionTimerRef.current);
+      }
+    };
+  }, [wizardStep]);
 
   // Custom states across categories
   const [customPaletteName, setCustomPaletteName] = useState<string>(
@@ -134,6 +159,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
   const triggerSelectEffect = (id: string) => {
     playSelectSound();
+    triggerPixReaction();
     setJustSelectedId(id);
     setTimeout(() => {
       setJustSelectedId(null);
@@ -178,6 +204,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
   // Custom Handlers
   const applyCustomColor = (primary: string, secondary: string, accent: string, name?: string) => {
+    triggerPixReaction();
     const palName = name !== undefined ? name : customPaletteName;
     const customPalette = {
       id: 'custom_palette',
@@ -193,6 +220,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
   };
 
   const applyCustomOutfit = (name: string) => {
+    triggerPixReaction();
     const customOutfit = {
       id: 'custom_outfit',
       name: name.trim() || 'Свой костюм',
@@ -204,6 +232,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
   };
 
   const applyCustomAccessory = (name: string) => {
+    triggerPixReaction();
     const customAcc = {
       id: 'custom_accessory',
       name: name.trim() || 'Свой аксессуар',
@@ -215,6 +244,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
   };
 
   const applyCustomExpression = (name: string) => {
+    triggerPixReaction();
     const customExpr = {
       id: 'custom_expression',
       name: name.trim() || 'Свой характер',
@@ -227,6 +257,7 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
   };
 
   const applyCustomPose = (name: string) => {
+    triggerPixReaction();
     const customP = {
       id: 'custom_pose',
       name: name.trim() || 'Своя поза',
@@ -296,12 +327,17 @@ export const Stage2Appearance: React.FC<Stage2AppearanceProps> = ({
 
   const currentMascot = getWizardMascotContent();
 
+  // Palette (step 1) & Suit (step 2) -> Pix1.png; Accessory (step 3) -> Pix2.png; on selection -> temporarily Pix3.png
+  const stepDefaultPixState: PixState = wizardStep === 3 ? 'pix2' : 'pix1';
+  const activePixState: PixState = isPixReacting ? 'pix3' : stepDefaultPixState;
+
   return (
     <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6">
       {/* Mascot Guidance with dynamic educational speech and tips */}
       <div className="bg-white border-2 border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs">
         <MascotPixel
-          mood="thinking"
+          mood={isPixReacting ? 'celebrate' : 'thinking'}
+          pixState={activePixState}
           speechText={currentMascot.speech}
           tip={currentMascot.tip}
           showHint={false}

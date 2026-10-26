@@ -1,11 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import pixelMascotImg from '../assets/pix/pixel1.webp';
+import Pix1 from '../assets/images/Pix1.png';
+import Pix2 from '../assets/images/Pix2.png';
+import Pix3 from '../assets/images/Pix3.png';
 import { playClickSound } from '../services/soundEffects';
 
 export type PixelMood = 'happy' | 'thinking' | 'celebrate';
+export type PixState = 'default' | 'pix1' | 'pix2' | 'pix3';
+
+export interface PixImageProps {
+  state?: PixState;
+  className?: string;
+  alt?: string;
+  style?: React.CSSProperties;
+}
+
+export const PixImage: React.FC<PixImageProps> = ({
+  state = 'default',
+  className = '',
+  alt = 'Пикс',
+  style,
+}) => {
+  const srcMap: Record<PixState, string> = {
+    default: pixelMascotImg,
+    pix1: Pix1,
+    pix2: Pix2,
+    pix3: Pix3,
+  };
+
+  return (
+    <img
+      src={srcMap[state] || pixelMascotImg}
+      alt={alt}
+      className={className}
+      style={style}
+      referrerPolicy="no-referrer"
+    />
+  );
+};
 
 interface MascotPixelProps {
   mood?: PixelMood;
+  pixState?: PixState;
   speechText: string;
   tip?: string;
   className?: string;
@@ -39,6 +75,7 @@ const PARTICLE_COLORS = ['#B9F24D', '#62C9F5', '#FFB9D5', '#BDA7FF', '#FBBF24', 
 
 export const MascotPixel: React.FC<MascotPixelProps> = ({
   mood = 'happy',
+  pixState,
   speechText,
   tip,
   className = '',
@@ -54,9 +91,11 @@ export const MascotPixel: React.FC<MascotPixelProps> = ({
     setCustomSpeech(null);
   }, [speechText]);
 
-  const getImageSrc = () => {
-    return pixelMascotImg;
-  };
+  const resolvedPixState: PixState = pixState
+    ? pixState
+    : mood === 'celebrate'
+      ? 'pix3'
+      : 'default';
 
   const handlePixelClick = () => {
     if (!interactive) return;
@@ -137,14 +176,13 @@ export const MascotPixel: React.FC<MascotPixelProps> = ({
             className="relative w-32 h-32 sm:w-44 sm:h-44 flex items-center justify-center select-none"
             style={{ cursor: interactive ? 'pointer' : 'default' }}
           >
-            <img
-              src={getImageSrc()}
+            <PixImage
+              state={resolvedPixState}
               alt="Пикс"
-              className={`w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(37,39,53,0.2)] drop-shadow-[0_4px_14px_rgba(98,201,245,0.35)] transition-transform duration-300 ${
+              className={`w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(37,39,53,0.2)] drop-shadow-[0_4px_14px_rgba(98,201,245,0.35)] transition-all duration-300 animate-dressup-pop ${
                 interactive ? 'group-hover:rotate-1' : ''
               }`}
               style={{ cursor: interactive ? 'pointer' : 'default' }}
-              referrerPolicy="no-referrer"
             />
 
             {/* Particle Burst Overlay */}

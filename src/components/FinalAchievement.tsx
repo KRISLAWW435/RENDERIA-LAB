@@ -34,11 +34,13 @@ interface FinalAchievementProps {
   xp: number;
   badges: BadgeItem[];
   onRestart: () => void;
+  onPrev?: () => void;
 }
 
 export const FinalAchievement: React.FC<FinalAchievementProps> = ({
   character,
   onRestart,
+  onPrev,
 }) => {
   const containerWrapperRef = useRef<HTMLDivElement>(null);
   const certificateRef = useRef<HTMLDivElement>(null);
@@ -253,6 +255,7 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
       <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs">
         <MascotPixel
           mood="celebrate"
+          pixState="pix3"
           speechText={`Поздравляю, юный дизайнер! Твой герой «${
             character.name || 'Герой'
           }» спроектирован по всем канонам 3D-геймдева. Скачивай свой именной сертификат от RENDERIA & KIBERONE и делись успехом с друзьями!`}
@@ -360,7 +363,12 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
             >
               {/* Inner character image: frame applied directly to wrap tightly around the image */}
               <img
-                src={character.generatedImageUrl || ASSETS.robloxSampleHero}
+                src={
+                  character.uploaded3DImage ||
+                  character.threeDResultUrl ||
+                  character.generatedImageUrl ||
+                  ASSETS.robloxSampleHero
+                }
                 alt="Концепт персонажа"
                 crossOrigin="anonymous"
                 loading="eager"
@@ -890,8 +898,21 @@ export const FinalAchievement: React.FC<FinalAchievementProps> = ({
         </div>
       </div>
 
-      {/* Action Buttons: Download PNG and Create New Hero */}
+      {/* Action Buttons: Back, Download PNG, and Create New Hero */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+        {onPrev && (
+          <button
+            type="button"
+            onClick={() => {
+              playClickSound();
+              onPrev();
+            }}
+            className="btn-3d-white w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-4.5 rounded-2xl font-display font-black text-base cursor-pointer border-2 border-slate-300 shadow-[0_4px_0_#cbd5e1] transition-all hover:translate-y-[-2px]"
+          >
+            <span>← Назад</span>
+          </button>
+        )}
+
         <button
           onClick={handleDownloadPng}
           disabled={isExporting}
